@@ -1,0 +1,5 @@
+# Sembunyikan file rahasia
+.env
+
+# Sembunyikan folder dependensi
+node_modules/
