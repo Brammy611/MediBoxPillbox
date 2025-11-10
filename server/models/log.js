@@ -2,57 +2,81 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const logSchema = new Schema({
-  patient_id: {
+  patient: {
     type: Schema.Types.ObjectId,
     ref: 'Patient',
     required: true
-  }, // [cite: 89]
-  device_id: {
+  },
+  patient_id: {
     type: Schema.Types.ObjectId,
-    ref: 'Device',
-    required: true
-  }, // [cite: 89]
-  medicine_id: [{ // Bisa jadi lebih dari 1 obat diambil bersamaan
+    ref: 'Patient'
+  },
+  medicine: {
     type: Schema.Types.ObjectId,
     ref: 'Medicine'
-  }], // [cite: 89, 90]
-  servo_active: [{ // Servo nomor berapa saja yang bergerak
+  },
+  medicine_id: [{
+    type: Schema.Types.ObjectId,
+    ref: 'Medicine'
+  }],
+  deviceId: {
+    type: String
+  },
+  device_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'Device'
+  },
+  action: {
+    type: String,
+    enum: ['taken', 'missed', 'skipped'],
+    required: true
+  },
+  status: {
+    type: String,
+    enum: ['on_time', 'late', 'missed', 'overdose'],
+    required: true
+  },
+  description: {
+    type: String
+  },
+  servo_active: [{
     type: Number
-  }], // [cite: 91, 92, 93, 94]
+  }],
   button_pressed: {
     type: Boolean
-  }, // [cite: 95]
-  photodiode_triggered: { // (Asumsi dari "photodiode_triggered" di PDF)
+  },
+  photodiode_triggered: {
     type: Boolean
-  }, // [cite: 96]
+  },
   fan_status: {
     type: Boolean
-  }, // [cite: 97]
-  timestamp: { // Waktu pasti event terjadi
+  },
+  timestamp: {
     type: Date,
-    required: true
-  }, // [cite: 98]
-  schedule_time: { // Jadwal seharusnya (cth: "08:00")
+    required: true,
+    default: Date.now
+  },
+  schedule_time: {
     type: String
-  }, // [cite: 99]
-  delay_seconds: { // Keterlambatan (jika ada)
+  },
+  delay_seconds: {
     type: Number
-  }, // [cite: 100]
-  compliance_status: { // Status kepatuhan
+  },
+  compliance_status: {
     type: String,
     enum: ['on-time', 'late', 'missed', 'overdose']
-  }, // [cite: 101]
+  },
   temperature: {
     type: Number
-  }, // [cite: 102]
+  },
   humidity: {
     type: Number
-  }, // [cite: 103]
+  },
   notes: {
     type: String
-  } // [cite: 104]
+  }
 }, {
-  timestamps: { createdAt: true, updatedAt: false } // [cite: 105] (Hanya createdAt)
+  timestamps: { createdAt: true, updatedAt: false }
 });
 
 module.exports = mongoose.model('Log', logSchema);

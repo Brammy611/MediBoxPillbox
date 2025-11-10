@@ -7,9 +7,7 @@ const connectDB = async () => {
   try {
     // Menggunakan URI dan nama DB dari .env
     await mongoose.connect(process.env.MONGO_URI, {
-      dbName: process.env.MONGO_DB, // Menentukan nama database 
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
+      dbName: process.env.MONGO_DB // Menentukan nama database
     });
 
     console.log('MongoDB Connected: Berhasil terhubung ke database MediBoxPillbox...');

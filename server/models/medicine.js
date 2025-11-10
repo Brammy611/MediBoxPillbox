@@ -15,32 +15,50 @@ const scheduleItemSchema = new Schema({
 }, { _id: false }); // _id: false agar tidak membuat ObjectId untuk sub-dokumen
 
 const medicineSchema = new Schema({
-  patient_id: {
+  patient: {
     type: Schema.Types.ObjectId,
     ref: 'Patient',
     required: true
-  }, // [cite: 56, 67]
+  },
+  patient_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'Patient'
+  },
   name: {
     type: String,
     required: true
-  }, // [cite: 56, 67]
+  },
   dosage: {
     type: String
-  }, // [cite: 57, 68]
+  },
+  description: {
+    type: String
+  },
+  compartmentNumber: {
+    type: Number,
+    required: true
+  },
   quantity_in_box: {
-    type: Number,
-    required: true
-  }, // [cite: 58, 69]
-  section_number: { // Posisi obat di dalam box
-    type: Number,
-    required: true
-  }, // [cite: 59, 70]
-  schedule: [scheduleItemSchema], // [cite: 60, 71]
-  storage_temp_limit: { // Batas suhu obat
     type: Number
-  } // [cite: 63, 73]
+  },
+  section_number: {
+    type: Number
+  },
+  stock: {
+    type: Number,
+    default: 0
+  },
+  status: {
+    type: String,
+    enum: ['Tersedia', 'Hampir Habis', 'Habis'],
+    default: 'Tersedia'
+  },
+  schedule: [scheduleItemSchema],
+  storage_temp_limit: {
+    type: Number
+  }
 }, {
-  timestamps: true // [cite: 64, 65, 74, 75]
+  timestamps: true
 });
 
 module.exports = mongoose.model('Medicine', medicineSchema);

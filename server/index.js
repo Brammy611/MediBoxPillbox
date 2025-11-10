@@ -20,6 +20,7 @@ app.get('/', (req, res) => {
 
 // Gunakan rute yang kita buat
 app.use('/api/devices', require('./routes/api/devices'));
+app.use('/api/dashboard', require('./routes/api/dashboard'));
 // (Nanti tambahkan rute lain di sini)
 // app.use('/api/users', require('./routes/api/users'));
 // app.use('/api/logs', require('./routes/api/logs'));
