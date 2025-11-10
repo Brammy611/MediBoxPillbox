@@ -1,7 +1,6 @@
 const express = require('express');
-const connectDB = require('./config/db'); // Impor fungsi koneksi DB
-
-// Memuat variabel .env
+const cors = require('cors'); // Impor cors
+const connectDB = require('./config/db');
 require('dotenv').config();
 
 // 1. Panggil fungsi koneksi database
@@ -10,15 +9,25 @@ connectDB();
 // 2. Inisialisasi Express
 const app = express();
 
-// 3. Buat rute (route) testing sederhana
+// 3. Tambahkan Middleware
+app.use(cors()); // Izinkan permintaan dari domain lain (React)
+app.use(express.json()); // Izinkan server membaca data JSON dari body
+
+// 4. Definisikan Rute
 app.get('/', (req, res) => {
   res.send('API MediBox Berjalan!');
 });
 
-// 4. Tentukan Port
+// Gunakan rute yang kita buat
+app.use('/api/devices', require('./routes/api/devices'));
+// (Nanti tambahkan rute lain di sini)
+// app.use('/api/users', require('./routes/api/users'));
+// app.use('/api/logs', require('./routes/api/logs'));
+
+// 5. Tentukan Port
 const PORT = process.env.PORT || 5000;
 
-// 5. Jalankan server
+// 6. Jalankan server
 app.listen(PORT, () => {
   console.log(`Server berjalan pada http://localhost:${PORT}`);
 });
