@@ -76,13 +76,14 @@ interface DashboardData {
 const FamilyDashboard: React.FC = () => {
   // State untuk autentikasi (SIMULASI - ganti dengan real auth nanti)
   const [auth, setAuth] = useState<AuthState>({
-    isLoggedIn: true, // Set false untuk test kondisi belum login
+    isLoggedIn: true,
     user: {
       role: 'family',
-      patientId: '123',
+      patientId: '', // akan diisi setelah fetch pasien
       email: 'FamilyAkun@gmail.com'
     }
   });
+  const [patients, setPatients] = useState<Array<{ _id: string; name?: string; username?: string }>>([]);
 
   // State untuk tab aktif (Default: Saran Pola Makan sesuai requirement)
   const [activeTab, setActiveTab] = useState<string>('Saran Pola Makan');
@@ -93,17 +94,42 @@ const FamilyDashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Fetch data dari API jika sudah login
+  // Ambil daftar pasien lalu set patientId pertama kalau belum ada
   useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        const resp = await axios.get('http://localhost:5000/api/dashboard/patients');
+        if (resp.data?.success && Array.isArray(resp.data.patients)) {
+          setPatients(resp.data.patients);
+          if (!auth.user?.patientId && resp.data.patients.length > 0) {
+            const firstId = resp.data.patients[0]._id;
+            setAuth(prev => ({
+              ...prev,
+              user: { ...prev.user!, patientId: firstId }
+            }));
+          }
+        }
+      } catch (e) {
+        console.error('Gagal mengambil daftar pasien:', e);
+      }
+    };
     if (auth.isLoggedIn && auth.user?.role === 'family') {
-      fetchDashboardData();
+      fetchPatients();
     }
-  }, [auth]);
+  }, [auth.isLoggedIn, auth.user?.role]);
 
-  const fetchDashboardData = async () => {
+  // Fetch data dashboard ketika patientId sudah tersedia
+  useEffect(() => {
+    if (auth.isLoggedIn && auth.user?.role === 'family' && auth.user.patientId) {
+      fetchDashboardData(auth.user.patientId);
+    }
+  }, [auth.user?.patientId, auth.isLoggedIn, auth.user?.role]);
+
+  const fetchDashboardData = async (pid: string) => {
     try {
       setIsLoading(true);
       const response = await axios.get(
-        `http://localhost:5000/api/family-dashboard/${auth.user?.patientId}`
+        `http://localhost:5000/api/family-dashboard/${pid}`
       );
 
       if (response.data.success) {
@@ -124,14 +150,12 @@ const FamilyDashboard: React.FC = () => {
     // TODO: Implementasi logic login
     console.log('Navigasi ke halaman login');
     // Simulasi login berhasil
-    setAuth({
+    // Simulasi login sukses tanpa patientId (akan di fetch otomatis)
+    setAuth(prev => ({
+      ...prev,
       isLoggedIn: true,
-      user: {
-        role: 'family',
-        patientId: '123',
-        email: 'FamilyAkun@gmail.com'
-      }
-    });
+      user: { ...prev.user!, patientId: '' }
+    }));
   };
 
   const handleDaftar = () => {
@@ -182,6 +206,24 @@ const FamilyDashboard: React.FC = () => {
     );
   }
 
+  // Jika belum ada patientId setelah fetch
+  if (auth.isLoggedIn && auth.user?.role === 'family' && !auth.user.patientId && patients.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-lg text-black/60">Tidak ada pasien terdaftar untuk akun ini.</p>
+      </div>
+    );
+  }
+
+  // Selector pasien sederhana (opsional)
+  const handleSelectPatient = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newId = e.target.value;
+    setAuth(prev => ({
+      ...prev,
+      user: { ...prev.user!, patientId: newId }
+    }));
+  };
+
   // Error State
   if (error) {
     return (
@@ -190,7 +232,7 @@ const FamilyDashboard: React.FC = () => {
           <h3 className="text-red-800 font-semibold mb-2">Terjadi Kesalahan</h3>
           <p className="text-red-600">{error}</p>
           <button
-            onClick={fetchDashboardData}
+            onClick={() => auth.user?.patientId && fetchDashboardData(auth.user.patientId)}
             className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
           >
             Coba Lagi
@@ -218,6 +260,21 @@ const FamilyDashboard: React.FC = () => {
         <p className="text-sm text-black/60 mt-2">
           Selamat datang, {dashboardData.profiles.caregiverProfile.nama}
         </p>
+        {patients.length > 0 && (
+          <div className="mt-4 flex items-center gap-2">
+            <label htmlFor="patientSelect" className="text-sm text-black/60">Pasien:</label>
+            <select
+              id="patientSelect"
+              value={auth.user!.patientId}
+              onChange={handleSelectPatient}
+              className="border rounded px-2 py-1 text-sm"
+            >
+              {patients.map(p => (
+                <option key={p._id} value={p._id}>{p.name || p.username || p._id}</option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {/* Banner Info (Jika belum lengkap profile) - Opsional */}
