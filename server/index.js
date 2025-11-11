@@ -23,6 +23,7 @@ app.get('/', (req, res) => {
 app.use('/api/devices', require('./routes/api/devices'));
 app.use('/api/dashboard', require('./routes/api/dashboard'));
 app.use('/api/family-dashboard', require('./routes/api/familyDashboard'));
+app.use('/api/medicines', require('./routes/api/medicines'));
 // (Nanti tambahkan rute lain di sini)
 // app.use('/api/users', require('./routes/api/users'));
 // app.use('/api/logs', require('./routes/api/logs'));
