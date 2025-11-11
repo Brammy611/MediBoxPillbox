@@ -22,7 +22,7 @@ interface DashboardData {
     alamat: string;
     noHp: string;
     jenisKelamin: string;
-  };
+  } | null;
   statistik: {
     waktuPengambilanObat: Array<{ hari: string; jumlah: number }>;
     analisisWaktuKritis: Array<{ waktu: string; persen: number; label: string }>;
@@ -61,6 +61,7 @@ export default function DashboardUtama() {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const API_BASE = (process.env.REACT_APP_API_URL || 'http://localhost:5000').replace(/\/$/, '');
 
   useEffect(() => {
     fetchDashboardData();
@@ -69,19 +70,26 @@ export default function DashboardUtama() {
   const fetchDashboardData = async () => {
     try {
       setIsLoading(true);
-      // Memanggil API backend yang berisi data dummy
-      const response = await axios.get(
-        'http://localhost:5000/api/dashboard/patient/dummy-patient-id'
-      );
-      
+      // 1) Ambil daftar pasien terlebih dahulu agar dapat _id yang valid
+      const listRes = await axios.get(`${API_BASE}/api/dashboard/patients`);
+      if (!listRes.data?.success || !Array.isArray(listRes.data?.patients) || listRes.data.patients.length === 0) {
+        setError('Tidak ada pasien di database. Tambahkan pasien terlebih dahulu.');
+        return;
+      }
+
+      const patientId: string = listRes.data.patients[0]._id; // pilih yang pertama (bisa diganti sesuai UI)
+
+      // 2) Ambil data dashboard untuk patient tersebut
+      const response = await axios.get(`${API_BASE}/api/dashboard/patient/${patientId}`);
       if (response.data.success) {
         setDashboardData(response.data.data);
       } else {
-        setError("Gagal memuat data dashboard");
+        setError(response.data?.message || 'Gagal memuat data dashboard');
       }
     } catch (err: any) {
       console.error("Error fetching dashboard data:", err);
-      setError(err.response?.data?.message || "Terjadi kesalahan saat memuat data");
+      const msg = err.response?.data?.message || err.message || 'Terjadi kesalahan saat memuat data';
+      setError(msg);
     } finally {
       setIsLoading(false);
     }
@@ -128,7 +136,7 @@ export default function DashboardUtama() {
       <div className="mb-8">
         <h1 className="text-3xl font-semibold text-ink">Dashboard Utama</h1>
         <p className="text-sm text-black/60 mt-2">
-          Selamat datang, {dashboardData.informasiKeluarga.nama}
+          Selamat datang, {dashboardData.informasiKeluarga?.nama || dashboardData.informasiPasien.nama}
         </p>
       </div>
 

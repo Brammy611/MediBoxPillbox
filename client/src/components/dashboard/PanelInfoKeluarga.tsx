@@ -1,17 +1,27 @@
 import React from "react";
 
+interface InfoKeluargaData {
+  nama: string;
+  email: string;
+  hubunganDenganLansia: string;
+  alamat: string;
+  noHp: string;
+  jenisKelamin: string;
+}
+
 interface InfoKeluargaProps {
-  informasiKeluarga: {
-    nama: string;
-    email: string;
-    hubunganDenganLansia: string;
-    alamat: string;
-    noHp: string;
-    jenisKelamin: string;
-  };
+  informasiKeluarga: InfoKeluargaData | null;
 }
 
 export default function PanelInfoKeluarga({ informasiKeluarga }: InfoKeluargaProps) {
+  if (!informasiKeluarga) {
+    return (
+      <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl shadow-soft p-6 border border-orange-200">
+        <h2 className="text-lg font-semibold mb-2 text-orange-900">Informasi Keluarga</h2>
+        <p className="text-sm text-orange-700">Data keluarga belum tersedia.</p>
+      </div>
+    );
+  }
   return (
     <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl shadow-soft p-6 border border-orange-200">
       <h2 className="text-lg font-semibold mb-4 text-orange-900">
