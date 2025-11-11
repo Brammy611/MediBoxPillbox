@@ -1,10 +1,11 @@
 const express = require('express');
 const cors = require('cors'); // Impor cors
 const connectDB = require('./config/db');
+const mongoose = require('mongoose');
 require('dotenv').config();
 
-// 1. Panggil fungsi koneksi database (DISABLED untuk development)
-// connectDB(); // Uncomment ini jika sudah setup MongoDB
+// 1. Panggil fungsi koneksi database
+connectDB();
 
 // 2. Inisialisasi Express
 const app = express();
@@ -32,4 +33,18 @@ const PORT = process.env.PORT || 5000;
 // 6. Jalankan server
 app.listen(PORT, () => {
   console.log(`Server berjalan pada http://localhost:${PORT}`);
+});
+
+// 7. Healthcheck sederhana untuk status MongoDB
+app.get('/api/health/db', (_req, res) => {
+  const states = ['disconnected', 'connected', 'connecting', 'disconnecting'];
+  const state = states[mongoose.connection.readyState] || 'unknown';
+  res.json({
+    success: true,
+    mongo: {
+      connected: mongoose.connection.readyState === 1,
+      state,
+      dbName: mongoose.connection.name || null,
+    },
+  });
 });
