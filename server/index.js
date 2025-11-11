@@ -3,8 +3,8 @@ const cors = require('cors'); // Impor cors
 const connectDB = require('./config/db');
 require('dotenv').config();
 
-// 1. Panggil fungsi koneksi database
-connectDB();
+// 1. Panggil fungsi koneksi database (DISABLED untuk development)
+// connectDB(); // Uncomment ini jika sudah setup MongoDB
 
 // 2. Inisialisasi Express
 const app = express();
@@ -21,6 +21,7 @@ app.get('/', (req, res) => {
 // Gunakan rute yang kita buat
 app.use('/api/devices', require('./routes/api/devices'));
 app.use('/api/dashboard', require('./routes/api/dashboard'));
+app.use('/api/family-dashboard', require('./routes/api/familyDashboard'));
 // (Nanti tambahkan rute lain di sini)
 // app.use('/api/users', require('./routes/api/users'));
 // app.use('/api/logs', require('./routes/api/logs'));

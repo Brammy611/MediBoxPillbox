@@ -5,11 +5,134 @@ const User = require('../../models/user');
 const Medicine = require('../../models/medicine');
 const Log = require('../../models/log');
 
+// DATA DUMMY - Untuk development tanpa database
+const dummyDashboardData = {
+  informasiPasien: {
+    nama: 'Supono',
+    umur: 70,
+    jenisKelamin: 'Laki-laki',
+    alamatLansia: 'Jl. Melati No. 45, Semarang',
+    riwayatAlergi: 'Penisilin, Seafood',
+    riwayatPenyakit: 'Hipertensi, Diabetes Tipe 2'
+  },
+  informasiKeluarga: {
+    nama: 'Budi Santoso',
+    email: 'budi.santoso@email.com',
+    hubunganDenganLansia: 'Anak Kandung',
+    alamat: 'Jl. Mawar No. 12, Semarang',
+    noHp: '081234567890',
+    jenisKelamin: 'Laki-laki'
+  },
+  statistik: {
+    waktuPengambilanObat: [
+      { hari: 'Hari ke -6', jumlah: 8 },
+      { hari: 'Hari ke -5', jumlah: 9 },
+      { hari: 'Hari ke -4', jumlah: 7 },
+      { hari: 'Hari ke -3', jumlah: 10 },
+      { hari: 'Hari ke -2', jumlah: 8 },
+      { hari: 'Hari ke -1', jumlah: 9 },
+      { hari: 'Hari ke 0', jumlah: 6 }
+    ],
+    analisisWaktuKritis: [
+      { waktu: 'Pagi', persen: 35, label: 'Pagi' },
+      { waktu: 'Siang', persen: 40, label: 'Siang' },
+      { waktu: 'Malam', persen: 25, label: 'Malam' }
+    ],
+    keterangan: '*Waktu lansia sering telat minum',
+    statusKepatuhan: {
+      status: 'Patuh',
+      kategori: 'Baik'
+    },
+    peringatanStok: 'Stok obat Metformin hampir habis'
+  },
+  aktivitas: {
+    riwayatRealTime: [
+      {
+        waktu: '[Hari ini, 08:00]',
+        namaObat: 'Amlodipine 5mg',
+        status: 'Diminum',
+        statusIcon: '✓',
+        deskripsi: 'Tepat Waktu'
+      },
+      {
+        waktu: '[Hari ini, 12:30]',
+        namaObat: 'Metformin 500mg',
+        status: 'Diminum',
+        statusIcon: '✓',
+        deskripsi: 'Terlambat 30 menit'
+      },
+      {
+        waktu: '[Hari ini, 14:00]',
+        namaObat: 'Simvastatin 20mg',
+        status: 'Tidak Diminum',
+        statusIcon: '✗',
+        deskripsi: 'Terlewat'
+      },
+      {
+        waktu: '[Hari ini, 18:00]',
+        namaObat: 'Amlodipine 5mg',
+        status: 'Diminum',
+        statusIcon: '✓',
+        deskripsi: 'Tepat Waktu'
+      },
+      {
+        waktu: '[Hari ini, 20:15]',
+        namaObat: 'Metformin 500mg',
+        status: 'Diminum',
+        statusIcon: '✓',
+        deskripsi: 'Terlambat 15 menit'
+      }
+    ],
+    totalMissedHariIni: 1,
+    deteksiAnomali: {
+      pesan: 'Sistem normal. Tidak ada anomali terdeteksi.',
+      waktu: '-',
+      tingkatKeparahan: 'rendah'
+    }
+  },
+  informasiObat: [
+    {
+      noSekat: 1,
+      namaObat: 'Amlodipine 5mg',
+      aturanMinum: '2x sehari (Pagi & Malam)',
+      deskripsi: 'Obat tekanan darah tinggi',
+      statusObat: 'Tersedia'
+    },
+    {
+      noSekat: 2,
+      namaObat: 'Metformin 500mg',
+      aturanMinum: '3x sehari (Sesudah makan)',
+      deskripsi: 'Obat diabetes',
+      statusObat: 'Hampir Habis'
+    },
+    {
+      noSekat: 3,
+      namaObat: 'Simvastatin 20mg',
+      aturanMinum: '1x sehari (Malam)',
+      deskripsi: 'Obat kolesterol',
+      statusObat: 'Tersedia'
+    }
+  ]
+};
+
 // GET /api/dashboard/patient/:patientId
 router.get('/patient/:patientId', async (req, res) => {
   try {
     const { patientId } = req.params;
 
+    // GUNAKAN DATA DUMMY - Tidak perlu koneksi database
+    // Nanti bisa di-uncomment untuk menggunakan database
+    return res.json({
+      success: true,
+      data: dummyDashboardData,
+      metadata: {
+        lastUpdated: new Date().toISOString(),
+        patientId: patientId,
+        source: 'dummy-data'
+      }
+    });
+
+    /* KODE UNTUK DATABASE - Uncomment jika sudah setup database
     // 1. Ambil data Patient dari database
     const patient = await Patient.findById(patientId).populate('caregiver');
     
@@ -178,6 +301,7 @@ router.get('/patient/:patientId', async (req, res) => {
       success: true,
       data: dashboardData
     });
+    */
 
   } catch (error) {
     console.error('Error fetching dashboard data:', error);

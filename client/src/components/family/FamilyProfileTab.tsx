@@ -1,0 +1,291 @@
+import React, { useState } from 'react';
+import axios from 'axios';
+
+interface LansiaProfile {
+  nama: string;
+  tanggalLahir: string;
+  jenisKelamin: string;
+  alamat: string;
+  riwayatAlergi: string;
+  riwayatPenyakit: string;
+}
+
+interface CaregiverProfile {
+  nama: string;
+  email: string;
+  jenisKelamin: string;
+  alamat: string;
+  hubungan: string;
+  noHP: string;
+}
+
+interface FamilyProfileTabProps {
+  profiles: {
+    lansiaProfile: LansiaProfile;
+    caregiverProfile: CaregiverProfile;
+  };
+  patientId: string;
+}
+
+const FamilyProfileTab: React.FC<FamilyProfileTabProps> = ({ profiles, patientId }) => {
+  // State untuk Lansia Profile
+  const [lansiaData, setLansiaData] = useState<LansiaProfile>(profiles.lansiaProfile);
+  const [lansiaEdited, setLansiaEdited] = useState(false);
+
+  // State untuk Caregiver Profile
+  const [caregiverData, setCaregiverData] = useState<CaregiverProfile>(profiles.caregiverProfile);
+  const [caregiverEdited, setCaregiverEdited] = useState(false);
+
+  // Handler untuk Lansia Profile
+  const handleLansiaChange = (field: keyof LansiaProfile, value: string) => {
+    setLansiaData(prev => ({ ...prev, [field]: value }));
+    setLansiaEdited(true);
+  };
+
+  const handleLansiaSimpan = async () => {
+    try {
+      const response = await axios.put(
+        `http://localhost:5000/api/family-dashboard/${patientId}/profiles`,
+        {
+          profileType: 'lansia',
+          profileData: lansiaData
+        }
+      );
+      
+      if (response.data.success) {
+        alert('Profil Lansia berhasil disimpan!');
+        setLansiaEdited(false);
+      }
+    } catch (error) {
+      console.error('Error saving lansia profile:', error);
+      alert('Gagal menyimpan profil lansia');
+    }
+  };
+
+  const handleLansiaBatal = () => {
+    setLansiaData(profiles.lansiaProfile);
+    setLansiaEdited(false);
+  };
+
+  // Handler untuk Caregiver Profile
+  const handleCaregiverChange = (field: keyof CaregiverProfile, value: string) => {
+    setCaregiverData(prev => ({ ...prev, [field]: value }));
+    setCaregiverEdited(true);
+  };
+
+  const handleCaregiverSimpan = async () => {
+    try {
+      const response = await axios.put(
+        `http://localhost:5000/api/family-dashboard/${patientId}/profiles`,
+        {
+          profileType: 'caregiver',
+          profileData: caregiverData
+        }
+      );
+      
+      if (response.data.success) {
+        alert('Profil Caregiver berhasil disimpan!');
+        setCaregiverEdited(false);
+      }
+    } catch (error) {
+      console.error('Error saving caregiver profile:', error);
+      alert('Gagal menyimpan profil caregiver');
+    }
+  };
+
+  const handleCaregiverBatal = () => {
+    setCaregiverData(profiles.caregiverProfile);
+    setCaregiverEdited(false);
+  };
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Lansia Profile */}
+      <div className="bg-[#FFF8F0] rounded-lg p-6 border border-black/10">
+        <h3 className="text-xl font-semibold text-ink mb-6">Lansia Profile</h3>
+        
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-ink mb-2">Nama:</label>
+            <input
+              type="text"
+              value={lansiaData.nama}
+              onChange={(e) => handleLansiaChange('nama', e.target.value)}
+              className="w-full px-4 py-2 border border-black/20 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-ink mb-2">Tanggal Lahir:</label>
+            <input
+              type="date"
+              value={lansiaData.tanggalLahir}
+              onChange={(e) => handleLansiaChange('tanggalLahir', e.target.value)}
+              className="w-full px-4 py-2 border border-black/20 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-ink mb-2">Jenis Kelamin:</label>
+            <input
+              type="text"
+              value={lansiaData.jenisKelamin}
+              onChange={(e) => handleLansiaChange('jenisKelamin', e.target.value)}
+              className="w-full px-4 py-2 border border-black/20 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-ink mb-2">Alamat:</label>
+            <input
+              type="text"
+              value={lansiaData.alamat}
+              onChange={(e) => handleLansiaChange('alamat', e.target.value)}
+              className="w-full px-4 py-2 border border-black/20 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-ink mb-2">Riwayat Alergi:</label>
+            <input
+              type="text"
+              value={lansiaData.riwayatAlergi}
+              onChange={(e) => handleLansiaChange('riwayatAlergi', e.target.value)}
+              className="w-full px-4 py-2 border border-black/20 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-ink mb-2">Riwayat Penyakit:</label>
+            <input
+              type="text"
+              value={lansiaData.riwayatPenyakit}
+              onChange={(e) => handleLansiaChange('riwayatPenyakit', e.target.value)}
+              className="w-full px-4 py-2 border border-black/20 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+            />
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button
+              onClick={handleLansiaSimpan}
+              disabled={!lansiaEdited}
+              className={`flex-1 py-2.5 rounded-md font-medium transition-colors ${
+                lansiaEdited
+                  ? 'bg-brand-500 text-white hover:bg-brand-600'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              Simpan
+            </button>
+            <button
+              onClick={handleLansiaBatal}
+              disabled={!lansiaEdited}
+              className={`flex-1 py-2.5 border-2 rounded-md font-medium transition-colors ${
+                lansiaEdited
+                  ? 'border-brand-500 text-brand-500 hover:bg-brand-50'
+                  : 'border-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              Batal
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Caregiver Profile */}
+      <div className="bg-[#FFF8F0] rounded-lg p-6 border border-black/10">
+        <h3 className="text-xl font-semibold text-ink mb-6">Caregiver Profile</h3>
+        
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-ink mb-2">Nama:</label>
+            <input
+              type="text"
+              value={caregiverData.nama}
+              onChange={(e) => handleCaregiverChange('nama', e.target.value)}
+              className="w-full px-4 py-2 border border-black/20 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-ink mb-2">Email:</label>
+            <input
+              type="email"
+              value={caregiverData.email}
+              onChange={(e) => handleCaregiverChange('email', e.target.value)}
+              className="w-full px-4 py-2 border border-black/20 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+              disabled
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-ink mb-2">Jenis Kelamin:</label>
+            <input
+              type="text"
+              value={caregiverData.jenisKelamin}
+              onChange={(e) => handleCaregiverChange('jenisKelamin', e.target.value)}
+              className="w-full px-4 py-2 border border-black/20 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-ink mb-2">Alamat:</label>
+            <input
+              type="text"
+              value={caregiverData.alamat}
+              onChange={(e) => handleCaregiverChange('alamat', e.target.value)}
+              className="w-full px-4 py-2 border border-black/20 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-ink mb-2">Hubungan dengan Lansia:</label>
+            <input
+              type="text"
+              value={caregiverData.hubungan}
+              onChange={(e) => handleCaregiverChange('hubungan', e.target.value)}
+              className="w-full px-4 py-2 border border-black/20 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-ink mb-2">No HP:</label>
+            <input
+              type="text"
+              value={caregiverData.noHP}
+              onChange={(e) => handleCaregiverChange('noHP', e.target.value)}
+              className="w-full px-4 py-2 border border-black/20 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+            />
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button
+              onClick={handleCaregiverSimpan}
+              disabled={!caregiverEdited}
+              className={`flex-1 py-2.5 rounded-md font-medium transition-colors ${
+                caregiverEdited
+                  ? 'bg-brand-500 text-white hover:bg-brand-600'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              Simpan
+            </button>
+            <button
+              onClick={handleCaregiverBatal}
+              disabled={!caregiverEdited}
+              className={`flex-1 py-2.5 border-2 rounded-md font-medium transition-colors ${
+                caregiverEdited
+                  ? 'border-brand-500 text-brand-500 hover:bg-brand-50'
+                  : 'border-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              Batal
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default FamilyProfileTab;

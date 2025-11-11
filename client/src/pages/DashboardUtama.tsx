@@ -69,11 +69,10 @@ export default function DashboardUtama() {
   const fetchDashboardData = async () => {
     try {
       setIsLoading(true);
-      // Ganti '123' dengan patientId yang sebenarnya dari auth/context
-      // Ganti 123 dengan Patient ID dari seeder
-    const response = await axios.get(
-    `http://localhost:5000/api/dashboard/patient/673a1b2c3d4e5f6789012345`
-    );
+      // Memanggil API backend yang berisi data dummy
+      const response = await axios.get(
+        'http://localhost:5000/api/dashboard/patient/dummy-patient-id'
+      );
       
       if (response.data.success) {
         setDashboardData(response.data.data);
@@ -125,10 +124,10 @@ export default function DashboardUtama() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-ink">Dashboard Utama</h1>
-        <p className="text-sm text-black/60 mt-1">
+    <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-semibold text-ink">Dashboard Utama</h1>
+        <p className="text-sm text-black/60 mt-2">
           Selamat datang, {dashboardData.informasiKeluarga.nama}
         </p>
       </div>
