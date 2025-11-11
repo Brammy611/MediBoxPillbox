@@ -6,6 +6,8 @@ import NavigasiTab from '../components/family/NavigasiTab';
 import FamilyProfileTab from '../components/family/FamilyProfileTab';
 import MedicineSetupTab from '../components/family/MedicineSetupTab';
 import SaranPolaMakanTab from '../components/family/SaranPolaMakanTab';
+import CekGejalaMandiriTab from '../components/family/CekGejalaMandiriTab';
+import NotifikasiTab from '../components/family/NotifikasiTab';
 import PlaceholderTab from '../components/family/PlaceholderTab';
 
 interface AuthState {
@@ -71,6 +73,15 @@ interface DashboardData {
     }>;
     daftarObatTerkait: string[];
   };
+  cekGejala?: {
+    initialMessage: string;
+    quickReplies: string[];
+  };
+  notifikasi?: Array<{
+    id: string;
+    tipe: 'warning' | 'info';
+    pesan: string;
+  }>;
 }
 
 const FamilyDashboard: React.FC = () => {
@@ -85,8 +96,8 @@ const FamilyDashboard: React.FC = () => {
   });
   const [patients, setPatients] = useState<Array<{ _id: string; name?: string; username?: string }>>([]);
 
-  // State untuk tab aktif (Default: Saran Pola Makan sesuai requirement)
-  const [activeTab, setActiveTab] = useState<string>('Saran Pola Makan');
+  // State untuk tab aktif (Default: Notifikasi sesuai requirement)
+  const [activeTab, setActiveTab] = useState<string>('Notifikasi');
 
   // State untuk data dashboard
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
@@ -317,11 +328,15 @@ const FamilyDashboard: React.FC = () => {
         )}
         
         {activeTab === 'Cek Gejala Mandiri' && (
-          <PlaceholderTab tabName="Cek Gejala Mandiri" />
+          <CekGejalaMandiriTab 
+            initData={dashboardData.cekGejala}
+            profiles={dashboardData.profiles}
+            patientId={auth.user.patientId}
+          />
         )}
         
         {activeTab === 'Notifikasi' && (
-          <PlaceholderTab tabName="Notifikasi" />
+          <NotifikasiTab notifications={dashboardData.notifikasi} />
         )}
       </div>
 

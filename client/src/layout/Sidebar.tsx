@@ -7,6 +7,7 @@ import {
   Users
 } from "lucide-react";
 import { useLocation } from "react-router-dom";
+import logoMedibox from "../assets/logo-medibox.png";
 
 const primaryLinks = [
   { label: "Tentang MediBox", icon: Home, href: "/" },
@@ -28,9 +29,11 @@ export default function Sidebar() {
       {/* Logo/Header - Lebih besar */}
       <div className="p-6 border-b border-black/10">
         <div className="flex items-center gap-3">
-          <div className="h-12 w-12 rounded-lg bg-brand-500 flex items-center justify-center text-white font-bold text-xl shadow-md">
-            M
-          </div>
+          <img 
+            src={logoMedibox} 
+            alt="MediBox Logo" 
+            className="h-12 w-12 object-contain"
+          />
           <div className="leading-tight">
             <div className="text-lg font-bold text-ink">MEDIBOX</div>
             <div className="text-sm text-brand-600 font-medium">CONTROL CENTER</div>

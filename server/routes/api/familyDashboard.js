@@ -192,7 +192,29 @@ router.get('/:patientId', async (req, res) => {
         caregiverProfile
       },
       informasiObat,
-      saranPolaMakan
+      saranPolaMakan,
+      // Inisialisasi data untuk fitur Cek Gejala Mandiri (chatbot)
+      cekGejala: {
+        initialMessage: `Halo, ${caregiverProfile.nama || 'Caregiver'}! Saya AI Asisten MediBox. Apakah ada keluhan yang ${lansiaProfile.nama || 'lansia'} rasakan hari ini?`,
+        quickReplies: [
+          'Kakek mual dan tidak nafsu makan',
+          'Kakek terlihat pusing',
+          'Kakek mengeluh nyeri dada'
+        ]
+      },
+      // Data notifikasi
+      notifikasi: [
+        {
+          id: 'n1',
+          tipe: 'warning',
+          pesan: 'Terdeteksi Guncangan keras pada MediBox pukul 02:15. Segera hubungi Kakek!'
+        },
+        {
+          id: 'n2',
+          tipe: 'info',
+          pesan: 'Obat sudah diminum pada pukul 07:02, status telat'
+        }
+      ]
     };
 
     res.json({
