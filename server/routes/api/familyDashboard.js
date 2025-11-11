@@ -39,6 +39,65 @@ const mockFamilyDashboardData = {
       hubungan: "Anak",
       noHP: "085xxxx..."
     }
+  },
+  informasiObat: [
+    { 
+      noSekat: 1, 
+      namaObat: "Amoxcilin", 
+      aturanMinum: "2 kali Sehari", 
+      deskripsi: "Setelah Makan",
+      statusObat: "Tersedia"
+    },
+    { 
+      noSekat: 2, 
+      namaObat: "Obat Prostat", 
+      aturanMinum: "1 kali Sehari", 
+      deskripsi: "Sebelum Tidur",
+      statusObat: "Tersedia"
+    },
+    { 
+      noSekat: 3, 
+      namaObat: "Vitamin C", 
+      aturanMinum: "1 kali Sehari", 
+      deskripsi: "Setelah Sarapan",
+      statusObat: "Tersedia"
+    }
+  ],
+  saranPolaMakan: {
+    disclaimer: "Informasi di halaman ini dibuat oleh AI sebagai panduan untuk membantu Anda, INI BUKAN PENGGANTI saran medis profesional. Selalu konsultasikan semua perubahan pola makan atau keluhan tentang obat dengan dokter atau ahli gizi Anda.",
+    interaksiObat: [
+      {
+        obatTerdeteksi: "Amlodipine (Obat Hipertensi)",
+        peringatan: "Jangan dikonsumsi bersamaan dengan jus Grapefruit (Jeruk Bali Merah).",
+        alasan: "AI mendeteksi bahwa Grapefruit dapat meningkatkan kadar Amlodipine dalam darah, memicu efek samping berlebih seperti pusing atau sakit kepala berlebih."
+      },
+      {
+        obatTerdeteksi: "Simvastatin (Obat Kolesterol)",
+        peringatan: "Hindari konsumsi alkohol berlebih.",
+        alasan: "Dapat meningkatkan risiko kerusakan hati."
+      }
+    ],
+    tipsEfekSamping: {
+      obatTerdeteksi: "Amlodipine (Obat Hipertensi)",
+      efekSampingUmum: "Pusing saat berdiri (Hipotensi Ortostatik).",
+      tips: "Saran: Sebaiknya minum obat ini sambil duduk sebelum tidur. Ingatkan beliau untuk bangun dari tempat tidur secara perlahan (duduk dulu 30 detik sebelum berdiri) untuk mencegah pusing."
+    },
+    rekomendasiMakanan: [
+      {
+        id: 1,
+        judul: "1. Untuk Kesehatan Jantung & Hipertensi",
+        makanan: ["Pisang", "Apel", "Bayam"],
+        deskripsi: "Saran AI: Makanan-makanan ini kaya akan kalium (potassium) yang dapat membantu menyeimbangkan kadar garam (natrium) dan menjaga tekanan darah kakek tetap stabil.",
+        deskripsiLanjutan: "Saran AI: Mengandung Omega-3 yang tinggi, yang terbukti baik untuk kesehatan pembuluh darah dan jantung."
+      },
+      {
+        id: 2,
+        judul: "2. Untuk Kesehatan Pencernaan & Energi",
+        makanan: ["Oatmeal", "Gandum Utuh"],
+        deskripsi: "Saran AI: Ini adalah sumber serat larut dan karbohidrat kompleks yang sangat baik. Serat membantu melancarkan pencernaan (mencegah sembelit) dan memberi energi yang tahan lama."
+      }
+    ],
+    daftarObatTerkait: ["Amlodipine", "Simvastatin", "dst."]
   }
 };
 

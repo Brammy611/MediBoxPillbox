@@ -6,6 +6,7 @@ import {
   Pill,
   Users
 } from "lucide-react";
+import { useLocation } from "react-router-dom";
 
 const primaryLinks = [
   { label: "Tentang MediBox", icon: Home, href: "/" },
@@ -15,50 +16,97 @@ const primaryLinks = [
 ];
 
 export default function Sidebar() {
+  const location = useLocation();
+  
+  // Function to check if current path matches the link
+  const isActive = (href: string) => {
+    return location.pathname === href;
+  };
+
   return (
-    <div className="h-full flex flex-col">
-      <div className="p-6 border-b border-black/5">
+    <div className="h-screen sticky top-0 flex flex-col bg-[#FFF8F0]">
+      {/* Logo/Header - Lebih besar */}
+      <div className="p-6 border-b border-black/10">
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-md bg-brand-500" />
+          <div className="h-12 w-12 rounded-lg bg-brand-500 flex items-center justify-center text-white font-bold text-xl shadow-md">
+            M
+          </div>
           <div className="leading-tight">
-            <div className="text-sm font-semibold">MEDIBOX</div>
-            <div className="text-xs text-black/60">CONTROL CENTER</div>
+            <div className="text-lg font-bold text-ink">MEDIBOX</div>
+            <div className="text-sm text-brand-600 font-medium">CONTROL CENTER</div>
           </div>
         </div>
       </div>
 
-      <div className="p-4">
-        <div className="text-xs uppercase tracking-wide text-black/50 mb-2">
+      {/* Navigation Section */}
+      <div className="flex-1 overflow-y-auto p-5">
+        <div className="text-xs uppercase tracking-wider text-black/50 font-semibold mb-3 px-1">
           Navigation
         </div>
-        <nav className="space-y-1">
-          {primaryLinks.map((item) => (
-            <a
-              key={item.label}
-              href={item.href}
-              className="group flex items-center gap-3 px-3 py-2 rounded-md hover:bg-white hover:shadow-soft transition"
-            >
-              <item.icon className="h-4 w-4 text-brand-600" />
-              <span className="text-sm">{item.label}</span>
-            </a>
-          ))}
+        <nav className="space-y-2">
+          {primaryLinks.map((item) => {
+            const active = isActive(item.href);
+            return (
+              <a
+                key={item.label}
+                href={item.href}
+                className={`group flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                  active
+                    ? "bg-brand-500 text-white shadow-md"
+                    : "text-black/70 hover:bg-white hover:shadow-sm"
+                }`}
+              >
+                <item.icon 
+                  className={`h-5 w-5 ${
+                    active ? "text-white" : "text-brand-600"
+                  }`}
+                />
+                <span className={`text-sm font-medium ${
+                  active ? "text-white" : "text-ink"
+                }`}>
+                  {item.label}
+                </span>
+                {active && (
+                  <div className="ml-auto h-2 w-2 rounded-full bg-white"></div>
+                )}
+              </a>
+            );
+          })}
         </nav>
 
-        <div className="mt-6 text-xs uppercase tracking-wide text-black/50 mb-2">
+        {/* Snapshot Section */}
+        <div className="mt-8 text-xs uppercase tracking-wider text-black/50 font-semibold mb-3 px-1">
           Snapshot
         </div>
-        <div className="rounded-md bg-white p-3 shadow-soft text-sm text-black/70">
-          <div>Customer Service</div>
-          <div className="mt-2 flex items-center gap-2 text-brand-600">
-            <HelpCircle className="h-4 w-4" /> Syarat dan Perbaikan
+        <div className="rounded-lg bg-white p-4 shadow-sm border border-black/5">
+          <div className="text-sm font-medium text-ink mb-3">Customer Service</div>
+          <div className="space-y-2">
+            <a 
+              href="/syarat-perbaikan" 
+              className="flex items-center gap-2 text-sm text-brand-600 hover:text-brand-700 transition-colors"
+            >
+              <HelpCircle className="h-4 w-4" />
+              <span>Syarat dan Perbaikan</span>
+            </a>
+            <a 
+              href="/media-sosial" 
+              className="flex items-center gap-2 text-sm text-brand-600 hover:text-brand-700 transition-colors"
+            >
+              <Users className="h-4 w-4" />
+              <span>Media Sosial MediBox</span>
+            </a>
           </div>
-          <div className="mt-1 text-brand-600">Media Sosial MediBox</div>
         </div>
       </div>
 
-      <div className="mt-auto p-4">
-        <a className="flex items-center gap-2 text-sm text-black/70" href="/logout">
-          <LogOut className="h-4 w-4" /> Logout
+      {/* Logout Section - Sticky at bottom */}
+      <div className="p-5 border-t border-black/10 bg-white/50">
+        <a 
+          href="/logout" 
+          className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+        >
+          <LogOut className="h-5 w-5" />
+          <span>Logout</span>
         </a>
       </div>
     </div>

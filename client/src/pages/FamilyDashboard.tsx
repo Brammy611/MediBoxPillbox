@@ -4,6 +4,8 @@ import LoginPrompt from '../components/family/LoginPrompt';
 import PanelStatistikFamily from '../components/family/PanelStatistikFamily';
 import NavigasiTab from '../components/family/NavigasiTab';
 import FamilyProfileTab from '../components/family/FamilyProfileTab';
+import MedicineSetupTab from '../components/family/MedicineSetupTab';
+import SaranPolaMakanTab from '../components/family/SaranPolaMakanTab';
 import PlaceholderTab from '../components/family/PlaceholderTab';
 
 interface AuthState {
@@ -41,6 +43,34 @@ interface DashboardData {
       noHP: string;
     };
   };
+  informasiObat: Array<{
+    noSekat: number;
+    namaObat: string;
+    aturanMinum: string;
+    deskripsi: string;
+    statusObat?: string;
+  }>;
+  saranPolaMakan: {
+    disclaimer: string;
+    interaksiObat: Array<{
+      obatTerdeteksi: string;
+      peringatan: string;
+      alasan: string;
+    }>;
+    tipsEfekSamping: {
+      obatTerdeteksi: string;
+      efekSampingUmum: string;
+      tips: string;
+    };
+    rekomendasiMakanan: Array<{
+      id: number;
+      judul: string;
+      makanan: string[];
+      deskripsi: string;
+      deskripsiLanjutan?: string;
+    }>;
+    daftarObatTerkait: string[];
+  };
 }
 
 const FamilyDashboard: React.FC = () => {
@@ -54,8 +84,8 @@ const FamilyDashboard: React.FC = () => {
     }
   });
 
-  // State untuk tab aktif
-  const [activeTab, setActiveTab] = useState<string>('Family Profile');
+  // State untuk tab aktif (Default: Saran Pola Makan sesuai requirement)
+  const [activeTab, setActiveTab] = useState<string>('Saran Pola Makan');
 
   // State untuk data dashboard
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
@@ -222,11 +252,11 @@ const FamilyDashboard: React.FC = () => {
         )}
         
         {activeTab === 'Medicine Setup' && (
-          <PlaceholderTab tabName="Medicine Setup" />
+          <MedicineSetupTab medicines={dashboardData.informasiObat} />
         )}
         
         {activeTab === 'Saran Pola Makan' && (
-          <PlaceholderTab tabName="Saran Pola Makan" />
+          <SaranPolaMakanTab data={dashboardData.saranPolaMakan} />
         )}
         
         {activeTab === 'Cek Gejala Mandiri' && (

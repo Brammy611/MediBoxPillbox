@@ -4,13 +4,18 @@ import { ReactNode } from "react";
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <div className="h-full grid" style={{ gridTemplateColumns: "280px 1fr" }}>
-      <aside className="bg-brand-100 border-r border-black/5">
+    <div className="h-screen flex overflow-hidden">
+      {/* Sidebar - Fixed width, sticky */}
+      <aside className="w-72 flex-shrink-0 border-r border-black/10 shadow-sm">
         <Sidebar />
       </aside>
-      <main className="min-h-full flex flex-col">
+      
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col overflow-hidden">
         <Topbar />
-        <div className="px-8 pb-16">{children}</div>
+        <div className="flex-1 overflow-y-auto bg-[#FFFBF5]">
+          {children}
+        </div>
       </main>
     </div>
   );
