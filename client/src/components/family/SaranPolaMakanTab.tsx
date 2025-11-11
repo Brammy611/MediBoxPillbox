@@ -33,7 +33,6 @@ interface SaranPolaMakanTabProps {
   data: SaranPolaMakanData;
 }
 
-// Data dummy untuk preview UI
 const dummyData: SaranPolaMakanData = {
   disclaimer: "Informasi di halaman ini dibuat oleh AI sebagai panduan untuk membantu Anda, INI BUKAN PENGGANTI saran medis profesional. Selalu konsultasikan semua perubahan pola makan atau keluhan tentang obat dengan dokter atau ahli gizi Anda.",
   interaksiObat: [
