@@ -2,10 +2,39 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const mongoose = require('mongoose');
+
+// 🔹 Load .env PALING AWAL sebelum semua modul lain
 require('dotenv').config();
+
+console.log('🔐 Environment Variables Loaded:');
+console.log('   - MONGO_URI:', process.env.MONGO_URI ? '✓ Set' : '✗ Not Set');
+console.log('   - MONGO_DB:', process.env.MONGO_DB || 'Not Set');
+console.log('   - GEMINI_API_KEY:', process.env.GEMINI_API_KEY ? `✓ Set (${process.env.GEMINI_API_KEY.substring(0, 10)}...)` : '✗ Not Set');
+console.log('   - QUALCOMM_AI_API_KEY:', process.env.QUALCOMM_AI_API_KEY ? `✓ Set (${process.env.QUALCOMM_AI_API_KEY.substring(0, 10)}...)` : '✗ Not Set');
+console.log('   - PORT:', process.env.PORT || 5000);
+console.log('');
 
 // 🔹 1. Koneksi ke DB
 connectDB();
+
+// 🔹 1.5. Start Real-time Compliance Monitor & Scheduler (setelah DB terkoneksi)
+const complianceMonitor = require('./services/complianceMonitor');
+const { startComplianceScheduler } = require('./schedulers/complianceScheduler');
+
+mongoose.connection.once('open', () => {
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log('🤖 Initializing Qualcomm AI Compliance System...\n');
+  
+  // Start Real-time Monitor (inferensi saat ada data baru)
+  console.log('📡 Starting Real-time Compliance Monitor...');
+  complianceMonitor.startMonitoring();
+  
+  // Start Scheduler (backup, proses logs yang terlewat setiap 5 menit)
+  console.log('\n🕐 Starting Compliance Scheduler (backup)...');
+  startComplianceScheduler();
+  
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+});
 
 // 🔹 2. Inisialisasi Express
 const app = express();
@@ -28,6 +57,7 @@ app.use('/api/family-dashboard', require('./routes/api/familyDashboard'));
 app.use('/api/medicines', require('./routes/api/medicines'));
 app.use('/api/chatbot', require('./routes/api/chatbot'));
 app.use('/api/notifications', require('./routes/api/notifications'));
+app.use('/api/compliance', require('./routes/api/compliance')); // Route Qualcomm AI Compliance
 // (Nanti tambahkan rute lain di sini)
 // app.use('/api/users', require('./routes/api/users'));
 // app.use('/api/logs', require('./routes/api/logs'));

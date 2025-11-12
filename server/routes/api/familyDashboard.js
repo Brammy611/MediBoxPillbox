@@ -7,6 +7,7 @@ const Patient = require('../../models/patient');
 const User = require('../../models/user');
 const Medicine = require('../../models/medicine');
 const Log = require('../../models/log');
+const Kepatuhan = require('../../models/kepatuhan');
 
 // Helper: kategorikan jam ke Pagi/Siang/Malam
 function kategoriWaktu(scheduleTime) {
@@ -138,18 +139,48 @@ router.get('/:patientId', async (req, res) => {
       label: k
     }));
 
-    // Kepatuhan: ambil total jadwal terencana 7 hari = jumlah (medicine.schedule.length * 7)
-    const totalRencana = medicines.reduce((acc, m) => acc + (m.schedule ? m.schedule.length * 7 : 0), 0);
-    const totalTakenAll = logs.filter(l => l.action === 'taken').length;
-    const adherenceRatio = totalRencana ? totalTakenAll / totalRencana : 1; // jika belum ada jadwal dianggap 100%
+    // ============================================
+    // 🔹 KEPATUHAN: Gunakan data dari Collection Kepatuhan (Qualcomm AI)
+    // ============================================
+    const kepatuhanData = await Kepatuhan.find({
+      patient_id: patient._id,
+      created_at: { $gte: sevenDaysAgo }
+    }).lean();
+
     let statusKepatuhan = 'Patuh';
     let kategoriKepatuhan = 'Baik';
-    if (adherenceRatio < 0.8) {
-      statusKepatuhan = 'Kurang Patuh';
-      kategoriKepatuhan = 'Perlu Perhatian';
-    } else if (adherenceRatio < 0.9) {
-      statusKepatuhan = 'Cukup';
-      kategoriKepatuhan = 'Sedang';
+    let persentaseKepatuhan = 100;
+
+    if (kepatuhanData.length > 0) {
+      // Hitung dari data Qualcomm AI
+      const totalKepatuhan = kepatuhanData.length;
+      const jumlahPatuh = kepatuhanData.filter(k => k.kepatuhan === 'Patuh').length;
+      persentaseKepatuhan = persen(jumlahPatuh, totalKepatuhan);
+
+      if (persentaseKepatuhan < 50) {
+        statusKepatuhan = 'Tidak Patuh';
+        kategoriKepatuhan = 'Perlu Perhatian';
+      } else if (persentaseKepatuhan < 80) {
+        statusKepatuhan = 'Cukup Patuh';
+        kategoriKepatuhan = 'Sedang';
+      } else {
+        statusKepatuhan = 'Patuh';
+        kategoriKepatuhan = 'Baik';
+      }
+    } else {
+      // Fallback ke metode lama jika belum ada data kepatuhan
+      const totalRencana = medicines.reduce((acc, m) => acc + (m.schedule ? m.schedule.length * 7 : 0), 0);
+      const totalTakenAll = logs.filter(l => l.action === 'taken').length;
+      const adherenceRatio = totalRencana ? totalTakenAll / totalRencana : 1;
+      persentaseKepatuhan = Math.round(adherenceRatio * 100);
+      
+      if (adherenceRatio < 0.5) {
+        statusKepatuhan = 'Tidak Patuh';
+        kategoriKepatuhan = 'Perlu Perhatian';
+      } else if (adherenceRatio < 0.8) {
+        statusKepatuhan = 'Cukup Patuh';
+        kategoriKepatuhan = 'Sedang';
+      }
     }
 
     // Peringatan stok kalau ada obat quantity_in_box <= 5
@@ -203,6 +234,10 @@ router.get('/:patientId', async (req, res) => {
         analisisWaktuKritis,
         statusKepatuhan,
         kategoriKepatuhan,
+        persentaseKepatuhan,
+        totalKepatuhan: kepatuhanData.length,
+        jumlahPatuh: kepatuhanData.filter(k => k.kepatuhan === 'Patuh').length,
+        jumlahTidakPatuh: kepatuhanData.filter(k => k.kepatuhan === 'Tidak Patuh').length,
         peringatanStok
       },
       profiles: {

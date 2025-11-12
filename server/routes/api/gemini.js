@@ -11,7 +11,11 @@ router.post('/saran-pola-makan', async (req, res) => {
   const { penyakit, daftarObat } = req.body;
   const apiKey = process.env.GEMINI_API_KEY;
 
+  console.log("🔑 Checking API Key:", apiKey ? `${apiKey.substring(0, 10)}...` : 'NOT FOUND');
+  console.log("📍 All env keys:", Object.keys(process.env).filter(k => k.includes('GEMINI')));
+
   if (!apiKey) {
+    console.error("❌ GEMINI_API_KEY is not set!");
     return res.status(500).json({ error: 'Gemini API key not configured.' });
   }
 
