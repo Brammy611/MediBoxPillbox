@@ -143,9 +143,11 @@ router.get('/:patientId', async (req, res) => {
     // Profiles mapping
     const lansiaProfile = {
       nama: patient.name || patient.username || 'Tidak Diketahui',
-      tanggalLahir: '', // Tidak tersedia di skema; bisa ditambahkan nanti
+      tanggalLahir: patient.birthDate ? new Date(patient.birthDate).toISOString().split('T')[0] : '',
       jenisKelamin: patient.gender || 'Tidak Diketahui',
       alamat: patient.address || '-',
+      phone: patient.phone || '-',
+      age: typeof patient.age === 'number' ? patient.age : null,
       riwayatAlergi: (patient.medicalHistory?.allergies || []).join(', ') || '-',
       riwayatPenyakit: (patient.medicalHistory?.conditions || []).join(', ') || '-'
     };
@@ -240,12 +242,61 @@ router.get('/:patientId', async (req, res) => {
 // Placeholder update profile (Belum implement ke DB)
 router.put('/:patientId/profiles', async (req, res) => {
   try {
+    const { patientId } = req.params;
     const { profileType, profileData } = req.body;
-    res.json({
-      success: true,
-      message: `${profileType} profile berhasil diupdate (mock)`,
-      data: profileData
-    });
+
+    if (!mongoose.Types.ObjectId.isValid(patientId)) {
+      return res.status(400).json({ success: false, message: 'patientId tidak valid' });
+    }
+
+    if (profileType === 'lansia') {
+      // Map profileData ke field patient termasuk phone & age
+      const update = {};
+      if (profileData.nama) update.name = profileData.nama;
+      if (profileData.tanggalLahir) update.birthDate = new Date(profileData.tanggalLahir);
+      if (profileData.jenisKelamin) update.gender = profileData.jenisKelamin;
+      if (profileData.alamat) update.address = profileData.alamat;
+      if (profileData.phone) update.phone = profileData.phone;
+      if (profileData.age !== undefined && profileData.age !== null) update.age = Number(profileData.age);
+      // Alergi & Penyakit dipisah dengan koma
+      if (profileData.riwayatAlergi) {
+        update['medicalHistory.allergies'] = profileData.riwayatAlergi.split(',').map(s => s.trim()).filter(Boolean);
+      }
+      if (profileData.riwayatPenyakit) {
+        update['medicalHistory.conditions'] = profileData.riwayatPenyakit.split(',').map(s => s.trim()).filter(Boolean);
+      }
+      const updatedPatient = await Patient.findByIdAndUpdate(patientId, update, { new: true }).lean();
+      if (!updatedPatient) {
+        return res.status(404).json({ success: false, message: 'Pasien tidak ditemukan' });
+      }
+      return res.json({ success: true, message: 'Profil lansia berhasil diperbarui', data: profileData });
+    }
+
+    if (profileType === 'caregiver') {
+      // Temukan caregiver terkait
+      const patient = await Patient.findById(patientId).lean();
+      if (!patient) {
+        return res.status(404).json({ success: false, message: 'Pasien tidak ditemukan' });
+      }
+      let caregiverId = null;
+      if (patient.caregiver) caregiverId = patient.caregiver;
+      else if (patient.caregiver_id && mongoose.Types.ObjectId.isValid(patient.caregiver_id)) caregiverId = patient.caregiver_id;
+      else {
+        const caregiver = await User.findOne({ role: 'caregiver', linked_patients: patient._id }).lean();
+        caregiverId = caregiver?._id;
+      }
+      if (!caregiverId) {
+        return res.status(404).json({ success: false, message: 'Caregiver tidak ditemukan untuk pasien ini' });
+      }
+      const caregiverUpdate = {};
+      if (profileData.nama) caregiverUpdate.name = profileData.nama;
+      if (profileData.noHP) caregiverUpdate.phone = profileData.noHP;
+      // hubungan, alamat, jenisKelamin belum ada di skema user; bisa disimpan terpisah kalau diperlukan
+      await User.findByIdAndUpdate(caregiverId, caregiverUpdate, { new: true });
+      return res.json({ success: true, message: 'Profil caregiver berhasil diperbarui', data: profileData });
+    }
+
+    return res.status(400).json({ success: false, message: 'profileType tidak dikenali' });
   } catch (error) {
     console.error('Error updating profile:', error);
     res.status(500).json({
