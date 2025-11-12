@@ -116,10 +116,15 @@ router.get('/:patientId', async (req, res) => {
         }
       }
     });
-    const waktuPengambilanObat = Array.from({ length: 7 }, (_, i) => ({
-      hari: `Hari-${i + 1}`,
-      jumlah: hariMap[i] || 0
-    })).reverse(); // opsional: reverse kalau mau Hari-1 terbaru
+    const waktuPengambilanObat = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      return {
+        hari: `Hari-${i + 1}`,
+        jumlah: hariMap[i] || 0,
+        tanggal: date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
+      };
+    }).reverse(); // opsional: reverse kalau mau Hari-1 terbaru
 
     // Analisis waktu kritis (persentase taken per kategori waktu)
     const kategoriCounter = { Pagi: 0, Siang: 0, Malam: 0 };
@@ -136,7 +141,8 @@ router.get('/:patientId', async (req, res) => {
     const analisisWaktuKritis = Object.keys(kategoriCounter).map(k => ({
       waktu: k,
       persen: persen(kategoriCounter[k], totalTaken),
-      label: k
+      label: k,
+      jumlah: kategoriCounter[k]
     }));
 
     // ============================================
@@ -228,17 +234,33 @@ router.get('/:patientId', async (req, res) => {
       daftarObatTerkait: medicines.map(m => m.name)
     };
 
+    // Hitung ringkasan hari ini
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const logsToday = logs.filter(l => new Date(l.timestamp) >= todayStart);
+    const diminum = logsToday.filter(l => l.action === 'taken').length;
+    const terlewat = logsToday.filter(l => l.action === 'missed' || l.action === 'rejected').length;
+    const totalToday = diminum + terlewat;
+    const persentaseToday = persen(diminum, totalToday);
+
     const responseData = {
       stats: {
         waktuPengambilanObat,
         analisisWaktuKritis,
-        statusKepatuhan,
-        kategoriKepatuhan,
-        persentaseKepatuhan,
-        totalKepatuhan: kepatuhanData.length,
-        jumlahPatuh: kepatuhanData.filter(k => k.kepatuhan === 'Patuh').length,
-        jumlahTidakPatuh: kepatuhanData.filter(k => k.kepatuhan === 'Tidak Patuh').length,
-        peringatanStok
+        statusKepatuhan: {
+          status: statusKepatuhan,
+          kategori: kategoriKepatuhan,
+          persentase: persentaseKepatuhan,
+          detail: `${kepatuhanData.filter(k => k.kepatuhan === 'Patuh').length} dari ${kepatuhanData.length} dosis patuh (7 hari terakhir)`
+        },
+        keterangan: '*Waktu lansia sering telat minum',
+        peringatanStok,
+        ringkasanHariIni: {
+          diminum,
+          terlewat,
+          total: totalToday,
+          persentase: persentaseToday
+        }
       },
       profiles: {
         lansiaProfile,

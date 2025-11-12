@@ -13,11 +13,22 @@ import PlaceholderTab from '../components/family/PlaceholderTab';
 
 interface DashboardData {
   stats: {
-    waktuPengambilanObat: Array<{ hari: string; jumlah: number }>;
-    analisisWaktuKritis: Array<{ waktu: string; persen: number; label: string }>;
-    statusKepatuhan: string;
-    kategoriKepatuhan?: string;
+    waktuPengambilanObat: Array<{ hari: string; jumlah: number; tanggal?: string }>;
+    analisisWaktuKritis: Array<{ waktu: string; persen: number; label: string; jumlah?: number }>;
+    statusKepatuhan: {
+      status: string;
+      kategori: string;
+      persentase?: number;
+      detail?: string;
+    };
     peringatanStok: string;
+    keterangan: string;
+    ringkasanHariIni?: {
+      diminum: number;
+      terlewat: number;
+      total: number;
+      persentase: number;
+    };
   };
   profiles: {
     lansiaProfile: {
@@ -110,8 +121,11 @@ const FamilyDashboard: React.FC = () => {
         `http://localhost:5000/api/family-dashboard/${pid}`
       );
 
+      console.log('📊 Family Dashboard Response:', response.data);
+
       if (response.data.success) {
         setDashboardData(response.data.data);
+        console.log('📊 Dashboard Data Set:', response.data.data);
       } else {
         setError('Gagal memuat data dashboard');
       }
