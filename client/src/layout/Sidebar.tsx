@@ -20,7 +20,7 @@ const primaryLinks = [
 export default function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, loading } = useAuth();
   
   // Function to check if current path matches the link
   const isActive = (href: string) => {
@@ -63,7 +63,8 @@ export default function Sidebar() {
           {primaryLinks.map((item) => {
             const active = isActive(item.href);
             const isProtected = item.protected;
-            const canAccess = !isProtected || user;
+            // Saat loading, tampilkan sebagai accessible untuk menghindari flicker
+            const canAccess = !isProtected || user || loading;
             
             return (
               <a
@@ -77,7 +78,7 @@ export default function Sidebar() {
                       : "text-black/30 cursor-not-allowed"
                 }`}
                 onClick={(e) => {
-                  if (!canAccess) {
+                  if (isProtected && !user && !loading) {
                     e.preventDefault();
                     navigate('/login');
                   }
@@ -127,7 +128,7 @@ export default function Sidebar() {
       </div>
 
       {/* Logout Section - Sticky at bottom */}
-      {user && (
+      {!loading && user && (
         <div className="p-5 border-t border-black/10 bg-white/50">
           <button 
             onClick={handleLogout}

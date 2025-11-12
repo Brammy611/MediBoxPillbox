@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 
 export default function Topbar() {
-  const { user, logout } = useAuth();
+  const { user, logout, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -29,8 +29,17 @@ export default function Topbar() {
       </div>
 
       {/* Right side - Notifications and Profile */}
-      <div className="flex items-center gap-6">
-        {user ? (
+      <div className="flex items-center gap-6 min-h-[48px]">
+        {loading ? (
+          // Loading skeleton
+          <div className="flex items-center gap-3 animate-pulse">
+            <div className="h-10 w-10 rounded-full bg-gray-200"></div>
+            <div className="space-y-2">
+              <div className="h-3 w-24 bg-gray-200 rounded"></div>
+              <div className="h-2 w-32 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        ) : user ? (
           <>
             {/* Notification Bell */}
             <button className="relative p-2.5 rounded-lg hover:bg-brand-50 transition-colors">
