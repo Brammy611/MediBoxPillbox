@@ -35,36 +35,56 @@ export default function Home() {
       {/* Cara Kerja */}
       <Section id="cara-kerja" title="Cara Kerja MediBox">
         <div className="grid md:grid-cols-1 gap-5">
-          <StepCard index={1} title="Bagi Keluarga (Pengguna Utama)">
-            <ol className="list-decimal ms-5 space-y-2">
-              <li>Pengguna memasukkan nama lengkap orang tua; bebas dari kerumitan teknologi.</li>
-              <li>Langsung hubungkan ke akun MediBox (menggunakan koneksi internet).</li>
-              <li>Tekan tombol “Yes” dan pengingat MediBox menyampaikan obatnya.</li>
-              <li>Aplikasi mobile menampilkan notifikasi dan riwayat minum obat.</li>
-            </ol>
+          <StepCard index={1} title="Bagi Lansia (Pengguna Utama)">
+            <p className="mb-3 text-black/75">
+              Pengalaman lansia kami rancang agar semudah mungkin, bebas dari kerumitan teknologi.
+            </p>
+            <ul className="list-disc ms-5 space-y-2">
+              <li>Pada jadwal minum obat, MediBox akan berbunyi (menggunakan buzzer internal).</li>
+              <li>Lansia cukup menekan tombol "Yes" dan menunggu MediBox menyiapkan obatnya.</li>
+              <li>Setelah itu, lansia bisa meminum obat yang telah dijadwalkan oleh keluarga/apoteker.</li>
+            </ul>
           </StepCard>
 
           <StepCard
             index={2}
-            title="Bagi Keluarga (Pengisi & Pemantau)"
-            subtitle="Ketika Anda tidak berada di rumah"
+            title="Bagi Kerabat/Keluarga (Pengisi & Pemantau)"
           >
+            <p className="mb-3 text-black/75">
+              Bagi kerabat, MediBox adalah "mata dan telinga" Anda yang cerdas di rumah.
+            </p>
+            
+            <h4 className="font-semibold text-ink mt-4 mb-2">Cara Pengisian:</h4>
             <ul className="list-disc ms-5 space-y-2">
-              <li>Pengisian kotak MediBox mudah: “mata dan telinga” Anda yang selalu siaga.</li>
-              <li>Kelola jadwal minum obat, barcode, dan verifikasi stok pada Family Dashboard.</li>
-              <li>Notifikasi telat minum, laporan ringkas (2–3 kalimat) dan deskripsi singkat.</li>
+              <li>Keluarga mengisi 4 sekat obat.</li>
+              <li>Melalui website MediBox, kerabat melakukan scan barcode yang tertera pada kotak MediBox dan melakukan registrasi pada menu Family Dashboard.</li>
+              <li>Input teks manual untuk melabeli setiap sekat obat (Sekat 1: "Amoxicillin") yang sudah diberikan resep dokter.</li>
+              <li>Input deskripsi obat lainnya seperti cara pemakaian (2x sehari, 3x sehari) dan deskripsi obat.</li>
+            </ul>
+
+            <h4 className="font-semibold text-ink mt-4 mb-2">Fitur Pemantauan:</h4>
+            <ul className="list-disc ms-5 space-y-2">
+              <li><strong>Pemantauan Real-Time:</strong> Terdapat dashboard di handphone Anda yang menunjukkan status "Sudah Diminum" atau "Terlewat" secara real-time.</li>
+              <li><strong>Klasifikasi Kepatuhan (AI):</strong> Didukung oleh Qualcomm AI Hub, sistem kami secara otomatis menganalisis pola perilaku lansia dan mengklasifikasikannya menjadi: Patuh, Kurang Patuh (Medium), atau Tidak Patuh. Anda tidak hanya tahu data, tapi juga trennya.</li>
+              <li><strong>Prediksi Stok Habis:</strong> Sistem kami secara cerdas menghitung sisa obat. Anda akan menerima notifikasi 3 hari sebelum obat di kotak habis, memberi Anda waktu untuk membeli atau mengirim obat baru.</li>
+              <li><strong>Saran Pola Makan (AI):</strong> Berdasarkan data obat yang Anda input secara manual, AI kami akan memberikan saran pola makan yang aman dan relevan untuk mendukung pengobatan lansia.</li>
             </ul>
           </StepCard>
 
           <StepCard
             index={3}
-            title="Bagi Pharmacy Partner"
-            subtitle="Kolaborasi monitoring obat harian"
+            title="Bagi Apoteker Mitra"
           >
+            <p className="mb-3 text-black/75">
+              Bagi Apoteker Mitra, mereka dapat mengisi obat lansia Anda langsung pada kotak MediBox.
+            </p>
+            
+            <h4 className="font-semibold text-ink mt-4 mb-2">Cara Pengisian:</h4>
             <ul className="list-disc ms-5 space-y-2">
-              <li>Pharmacy memindai QR code pada kotak lansia dan langsung terhubung ke MediBox.</li>
-              <li>Notifikasi refill, penjadwalan kunjungan, dan riwayat kepatuhan pasien.</li>
-              <li>Laporan ringkas berbasis data sebagai bahan komunikasi keluarga–pharmacy.</li>
+              <li>Apoteker dapat memindai QR Code unik di MediBox.</li>
+              <li>Apoteker mengisikan nama dan nomor ID unique yang telah diberikan MediBox kepada mitra apoteker.</li>
+              <li>Sistem akan menampilkan daftar obat dan jadwal yang telah di-input oleh kerabat. Ini mempermudah proses refill (isi ulang) dan mengurangi risiko kesalahan pemberian obat oleh apoteker.</li>
+              <li>Apoteker juga dapat mengisi obat berdasarkan saran dari resep dokter dan melakukan pengisian informasi obat.</li>
             </ul>
           </StepCard>
         </div>
