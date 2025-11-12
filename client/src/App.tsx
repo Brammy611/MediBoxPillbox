@@ -3,7 +3,7 @@ import Layout from "./layout/Layout";
 import Home from "./pages/Home";
 import DashboardUtama from "./pages/DashboardUtama";
 import FamilyDashboard from "./pages/FamilyDashboard";
-import ApothekerDashboard from "./pages/ApothekerDashboard";
+import ApotekerDashboard from "./pages/ApotekerDashboard";
 
 export default function App() {
   return (
@@ -12,7 +12,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/dashboard-utama" element={<DashboardUtama />} />
         <Route path="/family" element={<FamilyDashboard />} />
-        <Route path="/apotheker" element={<ApothekerDashboard />} />
+        <Route path="/apoteker" element={<ApotekerDashboard />} />
       </Routes>
     </Layout>
   );

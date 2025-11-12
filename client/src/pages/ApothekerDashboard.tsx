@@ -14,7 +14,7 @@ interface MedicineRow {
   schedule?: Array<{ time?: string; dose?: number }>;
 }
 
-export default function ApothekerDashboard() {
+export default function ApotekerDashboard() {
   const [data, setData] = useState<MedicineRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -67,7 +67,7 @@ export default function ApothekerDashboard() {
   return (
     <div className="max-w-6xl mx-auto px-6 py-8">
       <div className="mb-6 flex items-center gap-4">
-        <h1 className="text-2xl font-semibold">Apotheker Dashboard</h1>
+        <h1 className="text-2xl font-semibold">Apoteker Dashboard</h1>
         {patients.length > 1 && (
           <select
             className="border rounded-md px-2 py-1 text-sm"
