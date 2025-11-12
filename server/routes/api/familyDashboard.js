@@ -95,6 +95,8 @@ router.get('/:patientId', async (req, res) => {
         }
       }
       return {
+        id: m._id.toString(),
+        _id: m._id.toString(),
         noSekat: noSekat || null,
         namaObat: m.name,
         aturanMinum,

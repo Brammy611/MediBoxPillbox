@@ -322,7 +322,11 @@ const FamilyDashboard: React.FC = () => {
         )}
         
         {activeTab === 'Medicine Setup' && (
-          <MedicineSetupTab medicines={dashboardData.informasiObat} />
+          <MedicineSetupTab 
+            medicines={dashboardData.informasiObat}
+            patientId={auth.user?.patientId}
+            onRefresh={() => fetchDashboardData(auth.user?.patientId || '')}
+          />
         )}
         
         {activeTab === 'Saran Pola Makan' && (
