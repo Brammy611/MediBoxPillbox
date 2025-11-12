@@ -26,7 +26,18 @@ const userSchema = new Schema({
   linked_patients: [{
     type: Schema.Types.ObjectId,
     ref: 'Patient'
-  }] // [cite: 53]
+  }], // [cite: 53]
+  // Field tambahan untuk Caregiver Profile
+  gender: {
+    type: String,
+    enum: ['Laki-laki', 'Perempuan', 'Tidak Disebutkan']
+  },
+  address: {
+    type: String
+  },
+  relationship: {
+    type: String // Hubungan dengan pasien (Anak, Cucu, Keponakan, dll)
+  }
 }, {
   timestamps: true // Otomatis menambahkan createdAt dan updatedAt [cite: 54]
 });

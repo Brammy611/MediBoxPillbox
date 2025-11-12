@@ -61,9 +61,10 @@ const FamilyProfileTab: React.FC<FamilyProfileTabProps> = ({ profiles, patientId
         alert('Profil Lansia berhasil disimpan!');
         setLansiaEdited(false);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving lansia profile:', error);
-      alert('Gagal menyimpan profil lansia');
+      const errorMessage = error.response?.data?.message || 'Gagal menyimpan profil lansia';
+      alert(errorMessage);
     }
   };
 
@@ -90,11 +91,16 @@ const FamilyProfileTab: React.FC<FamilyProfileTabProps> = ({ profiles, patientId
       
       if (response.data.success) {
         alert('Profil Caregiver berhasil disimpan!');
+        // Update state dengan data terbaru dari server
+        if (response.data.data) {
+          setCaregiverData(response.data.data);
+        }
         setCaregiverEdited(false);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving caregiver profile:', error);
-      alert('Gagal menyimpan profil caregiver');
+      const errorMessage = error.response?.data?.message || 'Gagal menyimpan profil caregiver';
+      alert(errorMessage);
     }
   };
 
@@ -132,12 +138,15 @@ const FamilyProfileTab: React.FC<FamilyProfileTabProps> = ({ profiles, patientId
 
           <div>
             <label className="block text-sm font-medium text-ink mb-2">Jenis Kelamin:</label>
-            <input
-              type="text"
+            <select
               value={lansiaData.jenisKelamin}
               onChange={(e) => handleLansiaChange('jenisKelamin', e.target.value)}
               className="w-full px-4 py-2 border border-black/20 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
-            />
+            >
+              <option value="Tidak Diketahui">Pilih Jenis Kelamin</option>
+              <option value="Laki-laki">Laki-laki</option>
+              <option value="Perempuan">Perempuan</option>
+            </select>
           </div>
 
           <div>
@@ -240,19 +249,23 @@ const FamilyProfileTab: React.FC<FamilyProfileTabProps> = ({ profiles, patientId
               type="email"
               value={caregiverData.email}
               onChange={(e) => handleCaregiverChange('email', e.target.value)}
-              className="w-full px-4 py-2 border border-black/20 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-4 py-2 border border-black/20 rounded-md bg-gray-100 text-black/60 cursor-not-allowed"
               disabled
+              title="Email tidak dapat diubah karena digunakan untuk login"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-ink mb-2">Jenis Kelamin:</label>
-            <input
-              type="text"
+            <select
               value={caregiverData.jenisKelamin}
               onChange={(e) => handleCaregiverChange('jenisKelamin', e.target.value)}
               className="w-full px-4 py-2 border border-black/20 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
-            />
+            >
+              <option value="-">Pilih Jenis Kelamin</option>
+              <option value="Laki-laki">Laki-laki</option>
+              <option value="Perempuan">Perempuan</option>
+            </select>
           </div>
 
           <div>

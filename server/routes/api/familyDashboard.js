@@ -169,9 +169,9 @@ router.get('/:patientId', async (req, res) => {
     const caregiverProfile = caregiverDoc ? {
       nama: caregiverDoc.name || '-',
       email: caregiverDoc.email || '-',
-      jenisKelamin: '-', // Field gender tidak ada di user
-      alamat: '-',
-      hubungan: 'Caregiver',
+      jenisKelamin: caregiverDoc.gender || '-',
+      alamat: caregiverDoc.address || '-',
+      hubungan: caregiverDoc.relationship || 'Caregiver',
       noHP: caregiverDoc.phone || '-'
     } : {
       nama: '-',
@@ -302,12 +302,33 @@ router.put('/:patientId/profiles', async (req, res) => {
       if (!caregiverId) {
         return res.status(404).json({ success: false, message: 'Caregiver tidak ditemukan untuk pasien ini' });
       }
+      
+      // Update semua field caregiver
       const caregiverUpdate = {};
       if (profileData.nama) caregiverUpdate.name = profileData.nama;
       if (profileData.noHP) caregiverUpdate.phone = profileData.noHP;
-      // hubungan, alamat, jenisKelamin belum ada di skema user; bisa disimpan terpisah kalau diperlukan
-      await User.findByIdAndUpdate(caregiverId, caregiverUpdate, { new: true });
-      return res.json({ success: true, message: 'Profil caregiver berhasil diperbarui', data: profileData });
+      if (profileData.jenisKelamin) caregiverUpdate.gender = profileData.jenisKelamin;
+      if (profileData.alamat) caregiverUpdate.address = profileData.alamat;
+      if (profileData.hubungan) caregiverUpdate.relationship = profileData.hubungan;
+      // Email tidak diupdate karena digunakan untuk login
+      
+      const updatedCaregiver = await User.findByIdAndUpdate(caregiverId, caregiverUpdate, { new: true }).lean();
+      if (!updatedCaregiver) {
+        return res.status(404).json({ success: false, message: 'Caregiver tidak ditemukan' });
+      }
+      
+      return res.json({ 
+        success: true, 
+        message: 'Profil caregiver berhasil diperbarui', 
+        data: {
+          nama: updatedCaregiver.name,
+          email: updatedCaregiver.email,
+          jenisKelamin: updatedCaregiver.gender || '-',
+          alamat: updatedCaregiver.address || '-',
+          hubungan: updatedCaregiver.relationship || '-',
+          noHP: updatedCaregiver.phone || '-'
+        }
+      });
     }
 
     return res.status(400).json({ success: false, message: 'profileType tidak dikenali' });
