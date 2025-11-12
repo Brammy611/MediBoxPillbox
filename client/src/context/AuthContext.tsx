@@ -17,6 +17,7 @@ interface AuthContextType {
   register: (name: string, email: string, phone: string, serialNumber: string, password: string) => Promise<void>;
   logout: () => void;
   loading: boolean;
+  initialLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,7 +27,8 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
 
   // Initialize auth state from localStorage
@@ -38,7 +40,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
         await loadUser();
       } else {
-        setLoading(false);
+        setInitialLoading(false);
       }
       setInitialized(true);
     };
@@ -60,11 +62,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
       delete axios.defaults.headers.common['Authorization'];
     } finally {
-      setLoading(false);
+      setInitialLoading(false);
     }
   };
 
   const login = async (email: string, password: string) => {
+    setLoading(true);
     try {
       const response = await axios.post(`${API_URL}/auth/login`, {
         email,
@@ -80,6 +83,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Login gagal');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -90,6 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     serialNumber: string,
     password: string
   ) => {
+    setLoading(true);
     try {
       const response = await axios.post(`${API_URL}/auth/register`, {
         name,
@@ -108,6 +114,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Registrasi gagal');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -119,7 +127,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout, loading }}>
+    <AuthContext.Provider value={{ user, token, login, register, logout, loading, initialLoading }}>
       {children}
     </AuthContext.Provider>
   );

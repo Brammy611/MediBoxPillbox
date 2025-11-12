@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 
 export default function Topbar() {
-  const { user, logout, loading } = useAuth();
+  const { user, logout, initialLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -30,8 +30,8 @@ export default function Topbar() {
 
       {/* Right side - Notifications and Profile */}
       <div className="flex items-center gap-6 min-h-[48px]">
-        {loading ? (
-          // Loading skeleton
+        {initialLoading ? (
+          // Loading skeleton - hanya saat initial load
           <div className="flex items-center gap-3 animate-pulse">
             <div className="h-10 w-10 rounded-full bg-gray-200"></div>
             <div className="space-y-2">
