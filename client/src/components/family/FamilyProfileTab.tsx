@@ -6,6 +6,8 @@ interface LansiaProfile {
   tanggalLahir: string;
   jenisKelamin: string;
   alamat: string;
+  phone: string;
+  age: number | null; // read-only, dihitung dari tanggalLahir
   riwayatAlergi: string;
   riwayatPenyakit: string;
 }
@@ -38,17 +40,20 @@ const FamilyProfileTab: React.FC<FamilyProfileTabProps> = ({ profiles, patientId
 
   // Handler untuk Lansia Profile
   const handleLansiaChange = (field: keyof LansiaProfile, value: string) => {
+    if (field === 'age') return; // age tidak bisa diedit manual
     setLansiaData(prev => ({ ...prev, [field]: value }));
     setLansiaEdited(true);
   };
 
   const handleLansiaSimpan = async () => {
     try {
+      // Jangan kirim field age, karena dihitung dari tanggalLahir di server
+      const { age, ...payload } = lansiaData;
       const response = await axios.put(
         `http://localhost:5000/api/family-dashboard/${patientId}/profiles`,
         {
           profileType: 'lansia',
-          profileData: lansiaData
+          profileData: payload
         }
       );
       
@@ -143,6 +148,28 @@ const FamilyProfileTab: React.FC<FamilyProfileTabProps> = ({ profiles, patientId
               onChange={(e) => handleLansiaChange('alamat', e.target.value)}
               className="w-full px-4 py-2 border border-black/20 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-ink mb-2">No HP:</label>
+              <input
+                type="text"
+                value={lansiaData.phone}
+                onChange={(e) => handleLansiaChange('phone', e.target.value)}
+                className="w-full px-4 py-2 border border-black/20 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-ink mb-2">Usia:</label>
+              <input
+                type="text"
+                value={lansiaData.age ?? ''}
+                readOnly
+                className="w-full px-4 py-2 border border-black/20 rounded-md bg-gray-100 text-black/60"
+                title="Usia dihitung otomatis dari tanggal lahir"
+              />
+            </div>
           </div>
 
           <div>
