@@ -9,7 +9,7 @@ import TabelObat from "../components/dashboard/TabelObat";
 interface DashboardData {
   informasiPasien: {
     nama: string;
-    umur: number;
+    tanggalLahir: string;
     jenisKelamin: string;
     alamatLansia: string;
     riwayatAlergi: string;
