@@ -33,6 +33,8 @@ interface DashboardData {
       tanggalLahir: string;
       jenisKelamin: string;
       alamat: string;
+      phone: string;
+      age: number | null;
       riwayatAlergi: string;
       riwayatPenyakit: string;
     };

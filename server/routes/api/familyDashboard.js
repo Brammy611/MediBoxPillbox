@@ -24,6 +24,20 @@ function persen(part, total) {
   return Math.round((part / total) * 100);
 }
 
+// Helper: hitung usia dari birthDate (YYYY-MM-DD atau Date)
+function hitungUsia(birthDate) {
+  if (!birthDate) return null;
+  const d = new Date(birthDate);
+  if (isNaN(d.getTime())) return null;
+  const today = new Date();
+  let age = today.getFullYear() - d.getFullYear();
+  const m = today.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < d.getDate())) {
+    age--;
+  }
+  return age < 0 ? null : age;
+}
+
 // GET /api/family-dashboard/:patientId
 // Ambil data real dari MongoDB, menyesuaikan struktur yang dibutuhkan client FamilyDashboard
 router.get('/:patientId', async (req, res) => {
@@ -147,7 +161,7 @@ router.get('/:patientId', async (req, res) => {
       jenisKelamin: patient.gender || 'Tidak Diketahui',
       alamat: patient.address || '-',
       phone: patient.phone || '-',
-      age: typeof patient.age === 'number' ? patient.age : null,
+      age: hitungUsia(patient.birthDate),
       riwayatAlergi: (patient.medicalHistory?.allergies || []).join(', ') || '-',
       riwayatPenyakit: (patient.medicalHistory?.conditions || []).join(', ') || '-'
     };
@@ -256,8 +270,8 @@ router.put('/:patientId/profiles', async (req, res) => {
       if (profileData.tanggalLahir) update.birthDate = new Date(profileData.tanggalLahir);
       if (profileData.jenisKelamin) update.gender = profileData.jenisKelamin;
       if (profileData.alamat) update.address = profileData.alamat;
-      if (profileData.phone) update.phone = profileData.phone;
-      if (profileData.age !== undefined && profileData.age !== null) update.age = Number(profileData.age);
+  if (profileData.phone) update.phone = profileData.phone;
+  // usia tidak disimpan; akan dihitung otomatis dari tanggal lahir
       // Alergi & Penyakit dipisah dengan koma
       if (profileData.riwayatAlergi) {
         update['medicalHistory.allergies'] = profileData.riwayatAlergi.split(',').map(s => s.trim()).filter(Boolean);
