@@ -136,7 +136,7 @@ router.get('/patient/:patientId', async (req, res) => {
     const dashboardData = {
       informasiPasien: {
         nama: patient.name || patient.username || 'Unknown',
-        umur: patient.age || 0,
+        tanggalLahir: patient.birthDate ? patient.birthDate.toISOString().split('T')[0] : '',
         jenisKelamin: patient.gender || '-',
         alamatLansia: patient.address || '-',
         riwayatAlergi: Array.isArray(patient.medicalHistory?.allergies) ? patient.medicalHistory.allergies.join(', ') : '-',
