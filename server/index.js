@@ -20,6 +20,7 @@ app.get('/', (req, res) => {
 });
 
 // Gunakan rute yang kita buat
+app.use('/api/auth', require('./routes/api/auth'));
 app.use('/api/devices', require('./routes/api/devices'));
 app.use('/api/dashboard', require('./routes/api/dashboard'));
 app.use('/api/family-dashboard', require('./routes/api/familyDashboard'));
