@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import axios from 'axios';
 import TambahObatModal from '../components/pharmacy/TambahObatModal';
 
@@ -161,49 +161,18 @@ const PharmacyDashboard: React.FC = () => {
   }, []);
 
   const handleTambahObat = () => {
-    console.log('Opening modal with patientId:', patientId);
     setIsModalOpen(true);
   };
 
   const handleObatAdded = () => {
-    console.log('Medicine added, refreshing data for patientId:', patientId);
     setIsModalOpen(false);
-    // Force refresh dengan patientId yang ada
-    if (patientId) {
-      fetchData(patientId);
-    }
+    fetchData(patientId || undefined); // Refresh data setelah obat baru ditambahkan
   };
 
   const handlePatientChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newPatientId = e.target.value;
     setPatientId(newPatientId);
     fetchData(newPatientId);
-  };
-
-  const handleDeleteObat = async (medicineId: string, namaObat: string) => {
-    // Konfirmasi sebelum hapus
-    const confirmed = window.confirm(
-      `Apakah Anda yakin ingin menghapus obat "${namaObat}"?\n\nTindakan ini tidak dapat dibatalkan.`
-    );
-    
-    if (!confirmed) return;
-
-    try {
-      const response = await axios.delete(`${API_BASE}/api/medicines/${medicineId}`);
-      
-      if (response.data.success) {
-        // Refresh data setelah berhasil hapus
-        if (patientId) {
-          fetchData(patientId);
-        }
-        alert(`Obat "${namaObat}" berhasil dihapus`);
-      } else {
-        alert('Gagal menghapus obat: ' + response.data.message);
-      }
-    } catch (error: any) {
-      console.error('Error deleting medicine:', error);
-      alert('Gagal menghapus obat: ' + (error.response?.data?.message || error.message));
-    }
   };
 
   if (isLoading) {
@@ -337,15 +306,12 @@ const PharmacyDashboard: React.FC = () => {
                   <th className="px-6 py-3 text-left text-sm font-semibold text-ink">
                     Deskripsi Obat
                   </th>
-                  <th className="px-6 py-3 text-center text-sm font-semibold text-ink">
-                    Aksi
-                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {data.currentObat.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-black/60">
+                    <td colSpan={4} className="px-6 py-8 text-center text-black/60">
                       Tidak ada obat aktif saat ini
                     </td>
                   </tr>
@@ -356,15 +322,6 @@ const PharmacyDashboard: React.FC = () => {
                       <td className="px-6 py-4 text-sm text-ink">{item.namaObat}</td>
                       <td className="px-6 py-4 text-sm text-ink">{item.aturanMinum}</td>
                       <td className="px-6 py-4 text-sm text-ink">{item.deskripsi}</td>
-                      <td className="px-6 py-4 text-center">
-                        <button
-                          onClick={() => handleDeleteObat(item.id, item.namaObat)}
-                          className="inline-flex items-center justify-center p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                          title="Hapus obat"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                      </td>
                     </tr>
                   ))
                 )}

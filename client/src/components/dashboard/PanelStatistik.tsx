@@ -27,9 +27,9 @@ interface StatistikProps {
 }
 
 const COLORS = {
-  Pagi: "#FFA500",
-  Siang: "#FFD700",
-  Malam: "#4169E1",
+  Pagi: "#FF8F37",
+  Siang: "#C73D07",
+  Malam: "#451205",
 };
 
 export default function PanelStatistik({ statistik }: StatistikProps) {

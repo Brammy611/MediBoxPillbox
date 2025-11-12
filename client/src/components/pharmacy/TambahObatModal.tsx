@@ -11,7 +11,9 @@ interface TambahObatModalProps {
 const TambahObatModal: React.FC<TambahObatModalProps> = ({ onClose, onObatAdded, patientId }) => {
   const [formData, setFormData] = useState({
     namaObat: '',
-    aturanMinum: '',
+    frekuensiPerHari: 3, // Berapa kali sehari (default 3x)
+    jumlahTablet: 1,     // Berapa tablet per konsumsi (default 1)
+    stokObat: 20,        // Stock obat dalam kotak (default 20)
     deskripsi: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -20,6 +22,12 @@ const TambahObatModal: React.FC<TambahObatModalProps> = ({ onClose, onObatAdded,
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    const numValue = parseInt(value) || 0;
+    setFormData(prev => ({ ...prev, [name]: numValue }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,18 +44,39 @@ const TambahObatModal: React.FC<TambahObatModalProps> = ({ onClose, onObatAdded,
     try {
       // Kirim data ke API backend
       const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      
+      // Format aturan minum dari 2 input integer
+      const aturanMinum = `${formData.frekuensiPerHari}x sehari ${formData.jumlahTablet} tablet`;
+      
       const payload = {
-        ...formData,
+        namaObat: formData.namaObat,
+        aturanMinum: aturanMinum,
+        deskripsi: formData.deskripsi,
+        frekuensiPerHari: formData.frekuensiPerHari,
+        jumlahTablet: formData.jumlahTablet,
+        stokObat: formData.stokObat,
         patientId: patientId || undefined
       };
-      await axios.post(`${API_BASE}/api/obat/tambah`, payload);
       
-      // Panggil callback untuk refresh dan tutup modal
-      onObatAdded();
+      console.log('Sending payload:', payload);
+      console.log('Patient ID:', patientId);
+      
+      const response = await axios.post(`${API_BASE}/api/medicines/tambah`, payload);
+      
+      console.log('Response:', response.data);
+      
+      if (response.data.success) {
+        // Panggil callback untuk refresh dan tutup modal
+        onObatAdded();
+      } else {
+        setError(response.data.message || 'Gagal menyimpan data');
+        setIsSubmitting(false);
+      }
       
     } catch (err: any) {
       console.error("Error submit:", err);
-      setError(err.response?.data?.message || 'Gagal terhubung ke server');
+      console.error("Error response:", err.response?.data);
+      setError(err.response?.data?.message || err.message || 'Gagal terhubung ke server');
       setIsSubmitting(false);
     }
   };
@@ -102,19 +131,82 @@ const TambahObatModal: React.FC<TambahObatModalProps> = ({ onClose, onObatAdded,
 
           {/* Aturan Minum */}
           <div className="mb-4">
-            <label htmlFor="aturanMinum" className="block text-sm font-medium text-ink mb-2">
+            <label className="block text-sm font-medium text-ink mb-2">
               Aturan Minum
             </label>
-            <input
-              type="text"
-              id="aturanMinum"
-              name="aturanMinum"
-              value={formData.aturanMinum}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
-              placeholder="Contoh: 3 kali sehari"
-              disabled={isSubmitting}
-            />
+            <div className="grid grid-cols-2 gap-3">
+              {/* Frekuensi Per Hari */}
+              <div>
+                <label htmlFor="frekuensiPerHari" className="block text-xs text-gray-600 mb-1">
+                  Berapa kali sehari
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    id="frekuensiPerHari"
+                    name="frekuensiPerHari"
+                    value={formData.frekuensiPerHari}
+                    onChange={handleNumberChange}
+                    min="1"
+                    max="10"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                    disabled={isSubmitting}
+                  />
+                  <span className="text-sm text-gray-600">x</span>
+                </div>
+              </div>
+
+              {/* Jumlah Tablet */}
+              <div>
+                <label htmlFor="jumlahTablet" className="block text-xs text-gray-600 mb-1">
+                  Berapa tablet
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    id="jumlahTablet"
+                    name="jumlahTablet"
+                    value={formData.jumlahTablet}
+                    onChange={handleNumberChange}
+                    min="1"
+                    max="10"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                    disabled={isSubmitting}
+                  />
+                  <span className="text-sm text-gray-600">tablet</span>
+                </div>
+              </div>
+            </div>
+            {/* Preview */}
+            <div className="mt-2 text-xs text-gray-500 italic">
+              Preview: {formData.frekuensiPerHari}x sehari {formData.jumlahTablet} tablet
+            </div>
+          </div>
+
+          {/* Stok Obat */}
+          <div className="mb-4">
+            <label htmlFor="stokObat" className="block text-sm font-medium text-ink mb-2">
+              Stok Obat <span className="text-red-500">*</span>
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                id="stokObat"
+                name="stokObat"
+                value={formData.stokObat}
+                onChange={handleNumberChange}
+                min="1"
+                max="1000"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                placeholder="Jumlah tablet/kapsul dalam kotak"
+                required
+                disabled={isSubmitting}
+              />
+              <span className="text-sm text-gray-600">tablet</span>
+            </div>
+            <p className="mt-1 text-xs text-gray-500">
+              Masukkan jumlah total obat dalam kotak/kemasan
+            </p>
           </div>
 
           {/* Deskripsi Obat */}
