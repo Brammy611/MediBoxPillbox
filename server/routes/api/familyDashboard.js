@@ -72,11 +72,19 @@ router.get('/:patientId', async (req, res) => {
     }).lean();
 
     // Ambil log 7 hari terakhir untuk statistik kepatuhan
-    const sevenDaysAgo = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000); // termasuk hari ini (7 hari window)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+    
     const logs = await Log.find({
-      timestamp: { $gte: sevenDaysAgo },
       $or: [ { patient: patient._id }, { patient_id: patient._id } ]
-    }).lean();
+    })
+    .sort({ timestamp: -1, createdAt: -1 })
+    .limit(200)
+    .lean();
+
+    console.log('📊 [FamilyDashboard] Total logs found:', logs.length);
+    console.log('📊 [FamilyDashboard] Sample log:', logs[0]);
 
     // Map informasiObat sesuai struktur UI
     const informasiObat = medicines.map(m => {
@@ -106,44 +114,69 @@ router.get('/:patientId', async (req, res) => {
       };
     }).sort((a, b) => (a.noSekat || 0) - (b.noSekat || 0));
 
-    // Statistik: waktuPengambilanObat per hari (Hari-1 = hari ini mundur dst)
-    const hariMap = {}; // key: index (0..6) value jumlah
-    logs.forEach(l => {
-      const diffDays = Math.floor((Date.now() - new Date(l.timestamp).getTime()) / (24 * 60 * 60 * 1000));
-      if (diffDays >= 0 && diffDays < 7) {
-        if (l.action === 'taken') {
-          hariMap[diffDays] = (hariMap[diffDays] || 0) + 1;
-        }
-      }
+    // Statistik: waktuPengambilanObat per hari (7 hari terakhir)
+    // Filter logs yang berhasil diminum (compliance_status on-time/late atau action taken)
+    const statLogs = logs.filter(l => {
+      const logDate = new Date(l.timestamp || l.createdAt || l.timestamp_konsumsi_aktual);
+      const isInRange = logDate >= sevenDaysAgo;
+      const isSuccess = l.compliance_status === 'on-time' || 
+                       l.compliance_status === 'late' || 
+                       l.action === 'taken' ||
+                       l.aksi === 'Terima';
+      return isInRange && isSuccess;
     });
-    const waktuPengambilanObat = Array.from({ length: 7 }, (_, i) => {
+    
+    console.log('📊 [FamilyDashboard] Filtered statLogs count:', statLogs.length);
+    console.log('📊 [FamilyDashboard] sevenDaysAgo:', sevenDaysAgo);
+
+    // Buat array 7 hari terakhir
+    const waktuPengambilanObat = [];
+    for (let i = 6; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
-      return {
-        hari: `Hari-${i + 1}`,
-        jumlah: hariMap[i] || 0,
+      date.setHours(0, 0, 0, 0);
+      
+      const nextDate = new Date(date);
+      nextDate.setDate(nextDate.getDate() + 1);
+      
+      const count = statLogs.filter(l => {
+        const logDate = new Date(l.timestamp || l.createdAt || l.timestamp_konsumsi_aktual);
+        return logDate >= date && logDate < nextDate;
+      }).length;
+      
+      waktuPengambilanObat.push({
+        hari: `Hari-${i === 0 ? '1' : (i + 1)}`,
+        jumlah: count,
         tanggal: date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
-      };
-    }).reverse(); // opsional: reverse kalau mau Hari-1 terbaru
+      });
+    }
 
-    // Analisis waktu kritis (persentase taken per kategori waktu)
-    const kategoriCounter = { Pagi: 0, Siang: 0, Malam: 0 };
-    let totalTaken = 0;
-    logs.forEach(l => {
-      if (l.action === 'taken') {
-        totalTaken++;
-        const kategori = kategoriWaktu(l.schedule_time);
-        if (kategoriCounter[kategori] !== undefined) {
-          kategoriCounter[kategori]++;
-        }
+    // Analisis waktu kritis berdasarkan jam (pagi 5-12, siang 12-18, malam 18-5)
+    const timeBuckets = { Pagi: 0, Siang: 0, Malam: 0 };
+    statLogs.forEach(l => {
+      const logDate = new Date(l.timestamp || l.createdAt || l.timestamp_konsumsi_aktual);
+      const h = logDate.getHours();
+      if (h >= 5 && h < 12) {
+        timeBuckets.Pagi++;
+      } else if (h >= 12 && h < 18) {
+        timeBuckets.Siang++;
+      } else {
+        timeBuckets.Malam++;
       }
     });
-    const analisisWaktuKritis = Object.keys(kategoriCounter).map(k => ({
-      waktu: k,
-      persen: persen(kategoriCounter[k], totalTaken),
-      label: k,
-      jumlah: kategoriCounter[k]
+    
+    const totalBucket = Object.values(timeBuckets).reduce((a,b)=>a+b,0) || 0;
+    const analisisWaktuKritis = Object.keys(timeBuckets).map(label => ({
+      waktu: label,
+      persen: totalBucket > 0 ? Math.round((timeBuckets[label]/totalBucket)*100) : 33,
+      label,
+      jumlah: timeBuckets[label]
     }));
+    
+    console.log('📊 [FamilyDashboard] waktuPengambilanObat:', waktuPengambilanObat);
+    console.log('📊 [FamilyDashboard] analisisWaktuKritis:', analisisWaktuKritis);
+    console.log('📊 [FamilyDashboard] timeBuckets:', timeBuckets);
+    console.log('📊 [FamilyDashboard] totalBucket:', totalBucket);
 
     // ============================================
     // 🔹 KEPATUHAN: Gunakan data dari Collection Kepatuhan (Qualcomm AI)
@@ -237,10 +270,23 @@ router.get('/:patientId', async (req, res) => {
     // Hitung ringkasan hari ini
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
-    const logsToday = logs.filter(l => new Date(l.timestamp) >= todayStart);
-    const diminum = logsToday.filter(l => l.action === 'taken').length;
-    const terlewat = logsToday.filter(l => l.action === 'missed' || l.action === 'rejected').length;
-    const totalToday = diminum + terlewat;
+    const logsToday = logs.filter(l => {
+      const logDate = new Date(l.timestamp || l.createdAt || l.timestamp_konsumsi_aktual);
+      return logDate >= todayStart;
+    });
+    const diminum = logsToday.filter(l => 
+      l.compliance_status === 'on-time' || 
+      l.compliance_status === 'late' || 
+      l.action === 'taken' ||
+      l.aksi === 'Terima'
+    ).length;
+    const terlewat = logsToday.filter(l => 
+      l.compliance_status === 'missed' || 
+      l.action === 'missed' || 
+      l.action === 'rejected' ||
+      l.aksi === 'Tolak'
+    ).length;
+    const totalToday = logsToday.length;
     const persentaseToday = persen(diminum, totalToday);
 
     const responseData = {

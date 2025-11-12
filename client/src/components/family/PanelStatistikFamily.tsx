@@ -35,8 +35,12 @@ const PanelStatistikFamily: React.FC<PanelStatistikFamilyProps> = ({ stats }) =>
   React.useEffect(() => {
     console.log('📊 PanelStatistikFamily - Data Stats:', stats);
     console.log('📊 waktuPengambilanObat:', stats?.waktuPengambilanObat);
+    console.log('📊 waktuPengambilanObat length:', stats?.waktuPengambilanObat?.length);
     console.log('📊 analisisWaktuKritis:', stats?.analisisWaktuKritis);
+    console.log('📊 analisisWaktuKritis length:', stats?.analisisWaktuKritis?.length);
     console.log('📊 statusKepatuhan:', stats?.statusKepatuhan);
+    console.log('📊 Processed waktuData:', stats?.waktuPengambilanObat && stats.waktuPengambilanObat.length > 0 ? stats.waktuPengambilanObat : 'USING FALLBACK');
+    console.log('📊 Processed waktuKritisData:', stats?.analisisWaktuKritis && stats.analisisWaktuKritis.length > 0 ? stats.analisisWaktuKritis : 'USING FALLBACK');
   }, [stats]);
 
   // Fallback jika data kosong - pastikan selalu ada data untuk chart

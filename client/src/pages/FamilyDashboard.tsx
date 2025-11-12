@@ -126,6 +126,9 @@ const FamilyDashboard: React.FC = () => {
       if (response.data.success) {
         setDashboardData(response.data.data);
         console.log('📊 Dashboard Data Set:', response.data.data);
+        console.log('📊 Stats Object:', response.data.data?.stats);
+        console.log('📊 waktuPengambilanObat from API:', response.data.data?.stats?.waktuPengambilanObat);
+        console.log('📊 analisisWaktuKritis from API:', response.data.data?.stats?.analisisWaktuKritis);
       } else {
         setError('Gagal memuat data dashboard');
       }
