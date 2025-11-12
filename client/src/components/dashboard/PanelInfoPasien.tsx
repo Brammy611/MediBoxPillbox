@@ -105,14 +105,6 @@ export default function PanelInfoPasien({
         <h2 className="text-lg font-semibold text-orange-900">
           Informasi Lansia
         </h2>
-        {patientId && !isEditing && (
-          <button
-            onClick={handleEdit}
-            className="text-xs px-3 py-1 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors"
-          >
-            Edit
-          </button>
-        )}
       </div>
 
       <div className="space-y-3">
