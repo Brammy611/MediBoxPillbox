@@ -55,8 +55,9 @@ router.get('/patient/:patientId', async (req, res) => {
     // Ambil logs terkait patient (gunakan field patient atau patient_id)
     const rawLogs = await Log.find({ $or: [ { patient: patient._id }, { patient_id: patient._id } ] })
       .populate('medicine')
-      .sort({ timestamp: -1 })
-      .limit(50);
+      .sort({ createdAt: -1 })
+      .limit(100)
+      .lean();
 
     // Buat map obat untuk pencarian cepat nama obat dari log.medicine_id
     const medicineMap = medicines.reduce((acc, m) => {
@@ -64,48 +65,122 @@ router.get('/patient/:patientId', async (req, res) => {
       return acc;
     }, {});
 
-    // Hitung statistik 6 hari terakhir (taken/on-time)
-    const sixDaysAgo = new Date();
-    sixDaysAgo.setDate(sixDaysAgo.getDate() - 6);
-    const statLogs = rawLogs.filter(l => l.timestamp >= sixDaysAgo && (l.action === 'taken' || l.compliance_status === 'on-time'));
-
-    // Kelompokkan per hari
-    const byDay = {};
-    statLogs.forEach(l => {
-      const key = l.timestamp.toISOString().substring(0,10); // YYYY-MM-DD
-      byDay[key] = (byDay[key] || 0) + 1;
+    // Hitung statistik 7 hari terakhir (taken/on-time + late)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+    
+    // Filter logs untuk statistik - ambil yang berhasil diminum (on-time atau late)
+    // Gunakan createdAt atau timestamp_konsumsi_aktual
+    const statLogs = rawLogs.filter(l => {
+      const logDate = l.createdAt || l.timestamp_konsumsi_aktual || l.timestamp;
+      const isInRange = logDate >= sevenDaysAgo;
+      const isSuccess = l.compliance_status === 'on-time' || 
+                       l.compliance_status === 'late' || 
+                       l.aksi === 'Terima';
+      return isInRange && isSuccess;
     });
-    const sortedDays = Object.keys(byDay).sort();
-    const waktuPengambilanObat = sortedDays.map((d, idx) => ({
-      hari: `Hari ke -${sortedDays.length - idx - 1}`,
-      jumlah: byDay[d]
-    }));
 
-    // Analisis waktu kritis (pagi 5-12, siang 12-18, malam lainnya)
+    // Kelompokkan per hari - buat array 7 hari terakhir
+    const waktuPengambilanObat = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      date.setHours(0, 0, 0, 0);
+      
+      const nextDate = new Date(date);
+      nextDate.setDate(nextDate.getDate() + 1);
+      
+      const count = statLogs.filter(l => {
+        const logDate = new Date(l.createdAt || l.timestamp_konsumsi_aktual || l.timestamp);
+        return logDate >= date && logDate < nextDate;
+      }).length;
+      
+      waktuPengambilanObat.push({
+        hari: `Hari ke -${i}`,
+        jumlah: count,
+        tanggal: date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
+      });
+    }
+
+    // Analisis waktu kritis berdasarkan jam (pagi 5-12, siang 12-18, malam 18-5)
     const timeBuckets = { Pagi: 0, Siang: 0, Malam: 0 };
     statLogs.forEach(l => {
-      const h = l.timestamp.getHours();
-      if (h >=5 && h < 12) timeBuckets.Pagi++; else if (h >=12 && h < 18) timeBuckets.Siang++; else timeBuckets.Malam++;
+      const logDate = new Date(l.createdAt || l.timestamp_konsumsi_aktual || l.timestamp);
+      const h = logDate.getHours();
+      if (h >= 5 && h < 12) {
+        timeBuckets.Pagi++;
+      } else if (h >= 12 && h < 18) {
+        timeBuckets.Siang++;
+      } else {
+        timeBuckets.Malam++;
+      }
     });
+    
     const totalBucket = Object.values(timeBuckets).reduce((a,b)=>a+b,0) || 0;
     const analisisWaktuKritis = Object.keys(timeBuckets).map(label => ({
       waktu: label,
-      persen: totalBucket ? Math.round((timeBuckets[label]/totalBucket)*100) : 0,
-      label
+      persen: totalBucket > 0 ? Math.round((timeBuckets[label]/totalBucket)*100) : 0,
+      label,
+      jumlah: timeBuckets[label]
     }));
 
-    // Total missed (action === 'missed' atau compliance_status === 'missed') hanya hari ini
-    const today = new Date(); today.setHours(0,0,0,0);
-    const todayMissed = rawLogs.filter(l => l.timestamp >= today && (l.action === 'missed' || l.compliance_status === 'missed')).length;
+    // Total missed (compliance_status === 'missed' atau aksi === 'Tolak') hanya hari ini
+    const today = new Date(); 
+    today.setHours(0, 0, 0, 0);
+    const todayMissed = rawLogs.filter(l => {
+      const logDate = new Date(l.createdAt || l.timestamp_konsumsi_aktual || l.timestamp);
+      const isToday = logDate >= today;
+      const isMissed = l.compliance_status === 'missed' || 
+                      l.action === 'missed' || 
+                      l.aksi === 'Tolak';
+      return isToday && isMissed;
+    }).length;
+    
+    // Hitung total obat yang harus diminum hari ini vs yang sudah diminum
+    const todayLogs = rawLogs.filter(l => {
+      const logDate = new Date(l.createdAt || l.timestamp_konsumsi_aktual || l.timestamp);
+      return logDate >= today;
+    });
+    const todayTaken = todayLogs.filter(l => 
+      l.compliance_status === 'on-time' || 
+      l.compliance_status === 'late' || 
+      l.aksi === 'Terima'
+    ).length;
+    const todayTotal = todayLogs.length;
+    
+    // Hitung compliance rate (7 hari terakhir)
+    const totalSuccess = statLogs.length;
+    const totalMissed = rawLogs.filter(l => {
+      const logDate = new Date(l.createdAt || l.timestamp_konsumsi_aktual || l.timestamp);
+      const isInRange = logDate >= sevenDaysAgo;
+      const isMissed = l.compliance_status === 'missed' || 
+                      l.action === 'missed' || 
+                      l.aksi === 'Tolak';
+      return isInRange && isMissed;
+    }).length;
+    const totalAttempts = totalSuccess + totalMissed;
+    const complianceRate = totalAttempts > 0 
+      ? Math.round((totalSuccess / totalAttempts) * 100) 
+      : 0;
 
     // Riwayat realtime format
-    const riwayatRealTime = rawLogs.slice(0,10).map(log => {
-      const t = new Date(log.timestamp);
-      const hh = t.getHours().toString().padStart(2,'0');
-      const mm = t.getMinutes().toString().padStart(2,'0');
-      const taken = (log.action === 'taken') || (log.compliance_status === 'on-time' || log.compliance_status === 'late');
+    const riwayatRealTime = rawLogs.slice(0, 20).map(log => {
+      // Gunakan createdAt atau timestamp_konsumsi_aktual
+      const t = new Date(log.createdAt || log.timestamp_konsumsi_aktual || log.timestamp);
+      const hh = t.getHours().toString().padStart(2, '0');
+      const mm = t.getMinutes().toString().padStart(2, '0');
+      const dd = t.getDate().toString().padStart(2, '0');
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
+      const monthStr = monthNames[t.getMonth()];
+      
+      // Tentukan status berhasil diminum
+      const taken = (log.compliance_status === 'on-time' || 
+                    log.compliance_status === 'late' || 
+                    log.aksi === 'Terima');
+      
       // Tentukan nama obat dari populate atau dari medicine_id array
-      let namaObat = 'Unknown';
+      let namaObat = 'Obat';
       if (log.medicine && log.medicine.name) {
         namaObat = log.medicine.name;
       } else if (Array.isArray(log.medicine_id) && log.medicine_id.length > 0) {
@@ -114,12 +189,33 @@ router.get('/patient/:patientId', async (req, res) => {
           .filter(Boolean);
         if (names.length > 0) namaObat = names.join(', ');
       }
+      
+      // Jumlah obat dari servo_active
+      const jumlahObat = Array.isArray(log.servo_active) ? log.servo_active.length : 1;
+      if (jumlahObat > 1) {
+        namaObat = `${jumlahObat} obat`;
+      }
+      
+      // Deskripsi lebih detail
+      let deskripsi = log.notes || '';
+      if (log.compliance_status === 'late' && log.delay_seconds) {
+        const delayMin = Math.floor(log.delay_seconds / 60);
+        deskripsi = `Terlambat ${delayMin} menit. ${deskripsi}`;
+      } else if (log.compliance_status === 'on-time') {
+        deskripsi = 'Tepat waktu';
+      } else if (log.compliance_status === 'missed') {
+        deskripsi = 'Tidak diminum';
+      }
+      
       return {
-        waktu: `[${t.toDateString()}, ${hh}:${mm}]`,
+        waktu: `${dd} ${monthStr}, ${hh}:${mm}`,
         namaObat,
         status: taken ? 'Diminum' : 'Tidak Diminum',
         statusIcon: taken ? '✓' : '✗',
-        deskripsi: log.notes || log.description || log.compliance_status || '-'
+        deskripsi: deskripsi.trim() || '-',
+        compliance: log.compliance_status,
+        temperature: log.temperature,
+        humidity: log.humidity
       };
     });
 
@@ -163,10 +259,20 @@ router.get('/patient/:patientId', async (req, res) => {
         analisisWaktuKritis,
         keterangan: '*Data diambil dari MongoDB',
         statusKepatuhan: {
-          status: todayMissed > 2 ? 'Tidak Patuh' : 'Patuh',
-          kategori: todayMissed > 0 ? 'Peringatan' : 'Baik'
+          status: complianceRate >= 80 ? 'Patuh' : complianceRate >= 60 ? 'Cukup Patuh' : 'Tidak Patuh',
+          kategori: complianceRate >= 80 ? 'Baik' : complianceRate >= 60 ? 'Perlu Perhatian' : 'Peringatan',
+          persentase: complianceRate,
+          detail: `${totalSuccess} dari ${totalAttempts} dosis diminum (7 hari terakhir)`
         },
-        peringatanStok: informasiObat.some(i => i.statusObat === 'Hampir Habis' || i.statusObat === 'Habis') ? 'Stok obat hampir habis' : 'Stok obat mencukupi'
+        peringatanStok: informasiObat.some(i => i.statusObat === 'Hampir Habis' || i.statusObat === 'Habis') 
+          ? 'Stok obat hampir habis' 
+          : 'Stok obat mencukupi',
+        ringkasanHariIni: {
+          diminum: todayTaken,
+          terlewat: todayMissed,
+          total: todayTotal,
+          persentase: todayTotal > 0 ? Math.round((todayTaken / todayTotal) * 100) : 0
+        }
       },
       aktivitas: {
         riwayatRealTime,

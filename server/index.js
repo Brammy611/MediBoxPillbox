@@ -26,6 +26,7 @@ app.use('/api/dashboard', require('./routes/api/dashboard'));
 app.use('/api/family-dashboard', require('./routes/api/familyDashboard'));
 app.use('/api/medicines', require('./routes/api/medicines'));
 app.use('/api/chatbot', require('./routes/api/chatbot'));
+app.use('/api/notifications', require('./routes/api/notifications'));
 // (Nanti tambahkan rute lain di sini)
 // app.use('/api/users', require('./routes/api/users'));
 // app.use('/api/logs', require('./routes/api/logs'));

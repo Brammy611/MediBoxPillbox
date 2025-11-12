@@ -309,7 +309,7 @@ const FamilyDashboard: React.FC = () => {
         )}
         
         {activeTab === 'Notifikasi' && (
-          <NotifikasiTab notifications={dashboardData.notifikasi} />
+          <NotifikasiTab />
         )}
       </div>
 

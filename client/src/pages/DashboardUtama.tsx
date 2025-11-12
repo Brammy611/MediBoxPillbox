@@ -25,14 +25,22 @@ interface DashboardData {
     jenisKelamin: string;
   } | null;
   statistik: {
-    waktuPengambilanObat: Array<{ hari: string; jumlah: number }>;
-    analisisWaktuKritis: Array<{ waktu: string; persen: number; label: string }>;
+    waktuPengambilanObat: Array<{ hari: string; jumlah: number; tanggal?: string }>;
+    analisisWaktuKritis: Array<{ waktu: string; persen: number; label: string; jumlah?: number }>;
     keterangan: string;
     statusKepatuhan: {
       status: string;
       kategori: string;
+      persentase?: number;
+      detail?: string;
     };
     peringatanStok: string;
+    ringkasanHariIni?: {
+      diminum: number;
+      terlewat: number;
+      total: number;
+      persentase: number;
+    };
   };
   aktivitas: {
     riwayatRealTime: Array<{
