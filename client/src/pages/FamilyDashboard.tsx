@@ -262,11 +262,11 @@ const FamilyDashboard: React.FC = () => {
 
   // KONDISI 3: Sudah Login sebagai Family - Tampilkan Dashboard Lengkap
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-semibold text-ink">Family Dashboard</h1>
-        <p className="text-sm text-black/60 mt-2">
+      <div className="mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-ink">Family Dashboard</h1>
+        <p className="text-sm sm:text-base text-black/60 mt-1">
           Selamat datang, {dashboardData.profiles.caregiverProfile.nama}
         </p>
       </div>

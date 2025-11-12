@@ -122,72 +122,81 @@ const PanelStatistikFamily: React.FC<PanelStatistikFamilyProps> = ({ stats }) =>
   const statusColors = getStatusColor(kepatuhanInfo.kategori);
 
   return (
-    <div className="bg-white rounded-xl shadow-soft p-6 border border-black/5 mb-6">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold">📊 Statistik & Analisis</h2>
+    <div className="bg-white rounded-xl shadow-soft p-4 sm:p-6 border border-black/5 mb-6">
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="text-base sm:text-lg font-bold text-ink flex items-center gap-2">
+          <span>📊</span>
+          <span>Statistik & Analisis</span>
+        </h2>
         {stats.ringkasanHariIni && (
           <div className="text-right">
             <p className="text-xs text-gray-600">Hari Ini</p>
-            <p className="text-sm font-bold text-brand-600">
+            <p className="text-sm sm:text-base font-bold text-brand-600">
               {stats.ringkasanHariIni.diminum}/{stats.ringkasanHariIni.total} diminum
             </p>
           </div>
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6">
         {/* Grafik Waktu Pengambilan Obat */}
-        <div className="min-w-0">
-          <h3 className="text-sm font-medium mb-3">📈 Waktu Pengambilan Obat (7 Hari)</h3>
+        <div className="min-w-0 bg-gray-50/50 rounded-lg p-4">
+          <h3 className="text-sm sm:text-base font-semibold mb-4 text-gray-800 flex items-center gap-2">
+            <span>📈</span>
+            <span>Pengambilan Obat (7 Hari)</span>
+          </h3>
           {waktuData && waktuData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={220}>
+            <ResponsiveContainer width="100%" height={240}>
               <LineChart data={waktuData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis 
                   dataKey="hari" 
-                  style={{ fontSize: "11px" }}
-                  tick={{ fill: '#666' }}
+                  style={{ fontSize: "12px" }}
+                  tick={{ fill: '#4b5563' }}
                   angle={-45}
                   textAnchor="end"
-                  height={60}
+                  height={65}
                 />
                 <YAxis 
-                  style={{ fontSize: "11px" }}
-                  tick={{ fill: '#666' }}
+                  style={{ fontSize: "12px" }}
+                  tick={{ fill: '#4b5563' }}
                   allowDecimals={false}
                 />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend 
-                  wrapperStyle={{ fontSize: "12px", paddingTop: "10px" }}
+                  wrapperStyle={{ fontSize: "13px", paddingTop: "12px" }}
                   iconType="circle"
                 />
                 <Line
                   type="monotone"
                   dataKey="jumlah"
-                  stroke="#F97316"
-                  strokeWidth={2.5}
-                  dot={{ fill: "#F97316", r: 5 }}
+                  stroke="#FF8F37"
+                  strokeWidth={3}
+                  dot={{ fill: "#FF8F37", r: 5 }}
                   activeDot={{ r: 7 }}
                   name="Jumlah Obat"
                 />
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-[220px] flex items-center justify-center bg-gray-50 rounded-lg">
+            <div className="h-[240px] flex items-center justify-center bg-gray-100 rounded-lg">
               <p className="text-gray-500 text-sm">Tidak ada data</p>
             </div>
           )}
         </div>
 
         {/* Diagram Analisis Waktu Kritis */}
-        <div className="min-w-0">
-          <h3 className="text-sm font-medium mb-3">⏰ Analisis Waktu Kritis</h3>
+        <div className="min-w-0 bg-gray-50/50 rounded-lg p-4">
+          <h3 className="text-sm sm:text-base font-semibold mb-4 text-gray-800 flex items-center gap-2">
+            <span>⏰</span>
+            <span>Analisis Waktu Kritis</span>
+          </h3>
           
           {/* Responsive Layout: Pie Chart + Legend */}
           <div className="flex flex-col items-center">
             {/* Pie Chart */}
             {waktuKritisData && waktuKritisData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={180}>
+              <ResponsiveContainer width="100%" height={190}>
                 <PieChart>
                   <Pie
                     data={waktuKritisData}
@@ -195,7 +204,7 @@ const PanelStatistikFamily: React.FC<PanelStatistikFamilyProps> = ({ stats }) =>
                     cy="50%"
                     labelLine={false}
                     label={false}
-                    outerRadius={70}
+                    outerRadius={75}
                     innerRadius={0}
                     fill="#8884d8"
                     dataKey="persen"
@@ -212,29 +221,29 @@ const PanelStatistikFamily: React.FC<PanelStatistikFamilyProps> = ({ stats }) =>
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-[180px] flex items-center justify-center bg-gray-50 rounded-lg">
+              <div className="h-[190px] flex items-center justify-center bg-gray-100 rounded-lg">
                 <p className="text-gray-500 text-sm">Tidak ada data</p>
               </div>
             )}
 
             {/* Custom Legend yang Responsive */}
-            <div className="w-full mt-2 space-y-1.5">
+            <div className="w-full mt-3 space-y-2">
               {waktuKritisData.map((entry, index) => (
                 <div 
                   key={`legend-${index}`}
-                  className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-default"
+                  className="flex items-center justify-between px-4 py-2.5 bg-white rounded-lg hover:bg-gray-50 transition-colors cursor-default border border-gray-200"
                 >
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
                     <div 
-                      className="w-4 h-4 rounded flex-shrink-0"
+                      className="w-5 h-5 rounded flex-shrink-0"
                       style={{ backgroundColor: COLORS[entry.waktu as keyof typeof COLORS] }}
                     />
-                    <span className="text-sm font-medium text-gray-700">
+                    <span className="text-sm sm:text-base font-semibold text-gray-800">
                       {entry.label}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="text-sm font-bold text-gray-900">
+                    <span className="text-base sm:text-lg font-bold text-gray-900">
                       {entry.persen}%
                     </span>
                     {(entry.jumlah || 0) > 0 && (
@@ -248,51 +257,53 @@ const PanelStatistikFamily: React.FC<PanelStatistikFamilyProps> = ({ stats }) =>
             </div>
           </div>
 
-          <p className="text-xs text-black/60 text-center mt-3">
+          <p className="text-xs sm:text-sm text-gray-600 text-center mt-4 italic">
             {stats.keterangan || '*Waktu lansia sering telat minum'}
           </p>
         </div>
       </div>
 
       {/* Status Kepatuhan & Peringatan */}
-      <div className="mt-6 grid md:grid-cols-2 gap-4">
-        <div className={`${statusColors.bg} border ${statusColors.border} rounded-lg p-4`}>
-          <h4 className={`text-xs font-medium ${statusColors.text} mb-1`}>
+      <div className="mt-5 sm:mt-6 grid md:grid-cols-2 gap-4 sm:gap-5">
+        <div className={`${statusColors.bg} border-2 ${statusColors.border} rounded-xl p-5`}>
+          <h4 className={`text-xs sm:text-sm font-semibold ${statusColors.text} mb-2 uppercase tracking-wide`}>
             Status Kepatuhan
           </h4>
-          <div className="flex items-baseline gap-2">
-            <p className={`text-2xl font-bold ${statusColors.text}`}>
+          <div className="flex items-baseline gap-2 mb-3">
+            <p className={`text-2xl sm:text-3xl font-bold ${statusColors.text}`}>
               {kepatuhanInfo.status}
             </p>
             {kepatuhanInfo.persentase !== undefined && (
-              <span className="text-lg font-semibold text-gray-600">
+              <span className="text-lg sm:text-xl font-bold text-gray-600">
                 ({kepatuhanInfo.persentase}%)
               </span>
             )}
           </div>
-          <div className="mt-2 flex items-center gap-2">
-            <span className={`text-xs px-2 py-1 ${statusColors.badge} rounded font-medium`}>
+          <div className="flex items-center gap-2">
+            <span className={`text-xs sm:text-sm px-3 py-1.5 ${statusColors.badge} rounded-full font-semibold`}>
               {kepatuhanInfo.kategori}
             </span>
           </div>
           {kepatuhanInfo.detail && (
-            <p className="text-xs text-gray-600 mt-2">
+            <p className="text-xs sm:text-sm text-gray-700 mt-3 leading-relaxed">
               {kepatuhanInfo.detail}
             </p>
           )}
         </div>
 
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-          <h4 className="text-xs font-medium text-orange-800 mb-1">
-            📦 Peringatan Stok
+        <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-5">
+          <h4 className="text-xs sm:text-sm font-semibold text-orange-800 mb-2 uppercase tracking-wide flex items-center gap-2">
+            <span>📦</span>
+            <span>Peringatan Stok</span>
           </h4>
-          <p className="text-sm text-orange-700 mt-2 font-medium">
+          <p className="text-base sm:text-lg md:text-xl text-orange-700 mt-3 font-bold leading-relaxed">
             {stats.peringatanStok}
           </p>
           {stats.ringkasanHariIni && stats.ringkasanHariIni.terlewat > 0 && (
-            <div className="mt-3 pt-3 border-t border-orange-200">
-              <p className="text-xs text-orange-800 font-medium">
-                ⚠️ {stats.ringkasanHariIni.terlewat} dosis terlewat hari ini
+            <div className="mt-4 pt-4 border-t-2 border-orange-200">
+              <p className="text-sm sm:text-base text-orange-800 font-semibold flex items-center gap-2">
+                <span>⚠️</span>
+                <span>{stats.ringkasanHariIni.terlewat} dosis terlewat hari ini</span>
               </p>
             </div>
           )}

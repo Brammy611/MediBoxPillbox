@@ -226,18 +226,6 @@ const SaranPolaMakanTab: React.FC<SaranPolaMakanTabProps> = ({
           ))}
         </div>
       </div>
-
-      {/* Daftar Obat Terkait */}
-      {displayData.daftarObatTerkait?.length > 0 && (
-        <div className="bg-[#FFF8F0] border border-black/10 rounded-lg p-5">
-          <p className="font-semibold text-ink mb-3">Saran ini dibuat berdasarkan daftar obat:</p>
-          <ol className="list-decimal list-inside space-y-1">
-            {displayData.daftarObatTerkait.map((obat, i) => (
-              <li key={i} className="text-sm text-black/70">{obat}</li>
-            ))}
-          </ol>
-        </div>
-      )}
     </div>
   );
 };

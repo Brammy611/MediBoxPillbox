@@ -243,12 +243,12 @@ export default function PanelStatistik({ statistik }: StatistikProps) {
           <h4 className="text-xs font-medium text-orange-800 mb-1">
             📦 Peringatan Stok
           </h4>
-          <p className="text-sm text-orange-700 mt-2 font-medium">
+          <p className="text-base sm:text-lg md:text-xl text-orange-700 mt-2 font-bold">
             {statistik.peringatanStok}
           </p>
           {statistik.ringkasanHariIni && statistik.ringkasanHariIni.terlewat > 0 && (
             <div className="mt-3 pt-3 border-t border-orange-200">
-              <p className="text-xs text-orange-800 font-medium">
+              <p className="text-sm sm:text-base text-orange-800 font-semibold">
                 ⚠️ {statistik.ringkasanHariIni.terlewat} dosis terlewat hari ini
               </p>
             </div>

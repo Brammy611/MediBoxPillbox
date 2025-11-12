@@ -110,38 +110,40 @@ const FamilyProfileTab: React.FC<FamilyProfileTabProps> = ({ profiles, patientId
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6">
       {/* Lansia Profile */}
-      <div className="bg-[#FFF8F0] rounded-lg p-6 border border-black/10">
-        <h3 className="text-xl font-semibold text-ink mb-6">Lansia Profile</h3>
+      <div className="bg-[#FFF8F0] rounded-xl p-5 sm:p-6 border border-black/10 shadow-sm">
+        <h3 className="text-lg sm:text-xl font-bold text-ink mb-5 sm:mb-6 pb-3 border-b-2 border-brand-500">
+          👤 Lansia Profile
+        </h3>
         
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-ink mb-2">Nama:</label>
+            <label className="block text-sm sm:text-base font-semibold text-ink mb-2">Nama:</label>
             <input
               type="text"
               value={lansiaData.nama}
               onChange={(e) => handleLansiaChange('nama', e.target.value)}
-              className="w-full px-4 py-2 border border-black/20 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-4 py-2.5 text-sm sm:text-base border border-black/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-ink mb-2">Tanggal Lahir:</label>
+            <label className="block text-sm sm:text-base font-semibold text-ink mb-2">Tanggal Lahir:</label>
             <input
               type="date"
               value={lansiaData.tanggalLahir}
               onChange={(e) => handleLansiaChange('tanggalLahir', e.target.value)}
-              className="w-full px-4 py-2 border border-black/20 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-4 py-2.5 text-sm sm:text-base border border-black/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-ink mb-2">Jenis Kelamin:</label>
+            <label className="block text-sm sm:text-base font-semibold text-ink mb-2">Jenis Kelamin:</label>
             <select
               value={lansiaData.jenisKelamin}
               onChange={(e) => handleLansiaChange('jenisKelamin', e.target.value)}
-              className="w-full px-4 py-2 border border-black/20 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-4 py-2.5 text-sm sm:text-base border border-black/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
             >
               <option value="Tidak Diketahui">Pilih Jenis Kelamin</option>
               <option value="Laki-laki">Laki-laki</option>
@@ -150,117 +152,119 @@ const FamilyProfileTab: React.FC<FamilyProfileTabProps> = ({ profiles, patientId
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-ink mb-2">Alamat:</label>
+            <label className="block text-sm sm:text-base font-semibold text-ink mb-2">Alamat:</label>
             <input
               type="text"
               value={lansiaData.alamat}
               onChange={(e) => handleLansiaChange('alamat', e.target.value)}
-              className="w-full px-4 py-2 border border-black/20 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-4 py-2.5 text-sm sm:text-base border border-black/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-ink mb-2">No HP:</label>
+              <label className="block text-sm sm:text-base font-semibold text-ink mb-2">No HP:</label>
               <input
                 type="text"
                 value={lansiaData.phone}
                 onChange={(e) => handleLansiaChange('phone', e.target.value)}
-                className="w-full px-4 py-2 border border-black/20 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full px-4 py-2.5 text-sm sm:text-base border border-black/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-ink mb-2">Usia:</label>
+              <label className="block text-sm sm:text-base font-semibold text-ink mb-2">Usia:</label>
               <input
                 type="text"
                 value={lansiaData.age ?? ''}
                 readOnly
-                className="w-full px-4 py-2 border border-black/20 rounded-md bg-gray-100 text-black/60"
+                className="w-full px-4 py-2.5 text-sm sm:text-base border border-black/20 rounded-lg bg-gray-100 text-black/60"
                 title="Usia dihitung otomatis dari tanggal lahir"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-ink mb-2">Riwayat Alergi:</label>
+            <label className="block text-sm sm:text-base font-semibold text-ink mb-2">Riwayat Alergi:</label>
             <input
               type="text"
               value={lansiaData.riwayatAlergi}
               onChange={(e) => handleLansiaChange('riwayatAlergi', e.target.value)}
-              className="w-full px-4 py-2 border border-black/20 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-4 py-2.5 text-sm sm:text-base border border-black/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-ink mb-2">Riwayat Penyakit:</label>
+            <label className="block text-sm sm:text-base font-semibold text-ink mb-2">Riwayat Penyakit:</label>
             <input
               type="text"
               value={lansiaData.riwayatPenyakit}
               onChange={(e) => handleLansiaChange('riwayatPenyakit', e.target.value)}
-              className="w-full px-4 py-2 border border-black/20 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-4 py-2.5 text-sm sm:text-base border border-black/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
             />
           </div>
 
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 pt-3">
             <button
               onClick={handleLansiaSimpan}
               disabled={!lansiaEdited}
-              className={`flex-1 py-2.5 rounded-md font-medium transition-colors ${
+              className={`flex-1 py-3 text-sm sm:text-base rounded-lg font-semibold transition-all ${
                 lansiaEdited
-                  ? 'bg-brand-500 text-white hover:bg-brand-600'
+                  ? 'bg-brand-500 text-white hover:bg-brand-600 shadow-md hover:shadow-lg'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             >
-              Simpan
+              💾 Simpan
             </button>
             <button
               onClick={handleLansiaBatal}
               disabled={!lansiaEdited}
-              className={`flex-1 py-2.5 border-2 rounded-md font-medium transition-colors ${
+              className={`flex-1 py-3 text-sm sm:text-base border-2 rounded-lg font-semibold transition-all ${
                 lansiaEdited
                   ? 'border-brand-500 text-brand-500 hover:bg-brand-50'
                   : 'border-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             >
-              Batal
+              ❌ Batal
             </button>
           </div>
         </div>
       </div>
 
       {/* Caregiver Profile */}
-      <div className="bg-[#FFF8F0] rounded-lg p-6 border border-black/10">
-        <h3 className="text-xl font-semibold text-ink mb-6">Caregiver Profile</h3>
+      <div className="bg-[#FFF8F0] rounded-xl p-5 sm:p-6 border border-black/10 shadow-sm">
+        <h3 className="text-lg sm:text-xl font-bold text-ink mb-5 sm:mb-6 pb-3 border-b-2 border-brand-500">
+          👨‍⚕️ Caregiver Profile
+        </h3>
         
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-ink mb-2">Nama:</label>
+            <label className="block text-sm sm:text-base font-semibold text-ink mb-2">Nama:</label>
             <input
               type="text"
               value={caregiverData.nama}
               onChange={(e) => handleCaregiverChange('nama', e.target.value)}
-              className="w-full px-4 py-2 border border-black/20 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-4 py-2.5 text-sm sm:text-base border border-black/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-ink mb-2">Email:</label>
+            <label className="block text-sm sm:text-base font-semibold text-ink mb-2">Email:</label>
             <input
               type="email"
               value={caregiverData.email}
               onChange={(e) => handleCaregiverChange('email', e.target.value)}
-              className="w-full px-4 py-2 border border-black/20 rounded-md bg-gray-100 text-black/60 cursor-not-allowed"
+              className="w-full px-4 py-2.5 text-sm sm:text-base border border-black/20 rounded-lg bg-gray-100 text-black/60 cursor-not-allowed"
               disabled
               title="Email tidak dapat diubah karena digunakan untuk login"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-ink mb-2">Jenis Kelamin:</label>
+            <label className="block text-sm sm:text-base font-semibold text-ink mb-2">Jenis Kelamin:</label>
             <select
               value={caregiverData.jenisKelamin}
               onChange={(e) => handleCaregiverChange('jenisKelamin', e.target.value)}
-              className="w-full px-4 py-2 border border-black/20 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-4 py-2.5 text-sm sm:text-base border border-black/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
             >
               <option value="-">Pilih Jenis Kelamin</option>
               <option value="Laki-laki">Laki-laki</option>
@@ -269,57 +273,57 @@ const FamilyProfileTab: React.FC<FamilyProfileTabProps> = ({ profiles, patientId
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-ink mb-2">Alamat:</label>
+            <label className="block text-sm sm:text-base font-semibold text-ink mb-2">Alamat:</label>
             <input
               type="text"
               value={caregiverData.alamat}
               onChange={(e) => handleCaregiverChange('alamat', e.target.value)}
-              className="w-full px-4 py-2 border border-black/20 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-4 py-2.5 text-sm sm:text-base border border-black/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-ink mb-2">Hubungan dengan Lansia:</label>
+            <label className="block text-sm sm:text-base font-semibold text-ink mb-2">Hubungan dengan Lansia:</label>
             <input
               type="text"
               value={caregiverData.hubungan}
               onChange={(e) => handleCaregiverChange('hubungan', e.target.value)}
-              className="w-full px-4 py-2 border border-black/20 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-4 py-2.5 text-sm sm:text-base border border-black/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-ink mb-2">No HP:</label>
+            <label className="block text-sm sm:text-base font-semibold text-ink mb-2">No HP:</label>
             <input
               type="text"
               value={caregiverData.noHP}
               onChange={(e) => handleCaregiverChange('noHP', e.target.value)}
-              className="w-full px-4 py-2 border border-black/20 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="w-full px-4 py-2.5 text-sm sm:text-base border border-black/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
             />
           </div>
 
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 pt-3">
             <button
               onClick={handleCaregiverSimpan}
               disabled={!caregiverEdited}
-              className={`flex-1 py-2.5 rounded-md font-medium transition-colors ${
+              className={`flex-1 py-3 text-sm sm:text-base rounded-lg font-semibold transition-all ${
                 caregiverEdited
-                  ? 'bg-brand-500 text-white hover:bg-brand-600'
+                  ? 'bg-brand-500 text-white hover:bg-brand-600 shadow-md hover:shadow-lg'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             >
-              Simpan
+              💾 Simpan
             </button>
             <button
               onClick={handleCaregiverBatal}
               disabled={!caregiverEdited}
-              className={`flex-1 py-2.5 border-2 rounded-md font-medium transition-colors ${
+              className={`flex-1 py-3 text-sm sm:text-base border-2 rounded-lg font-semibold transition-all ${
                 caregiverEdited
                   ? 'border-brand-500 text-brand-500 hover:bg-brand-50'
                   : 'border-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             >
-              Batal
+              ❌ Batal
             </button>
           </div>
         </div>
