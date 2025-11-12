@@ -61,6 +61,7 @@ export default function DashboardUtama() {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPatientId, setCurrentPatientId] = useState<string>('');
   const API_BASE = (process.env.REACT_APP_API_URL || 'http://localhost:5000').replace(/\/$/, '');
 
   useEffect(() => {
@@ -78,6 +79,7 @@ export default function DashboardUtama() {
       }
 
       const patientId: string = listRes.data.patients[0]._id; // pilih yang pertama (bisa diganti sesuai UI)
+      setCurrentPatientId(patientId);
 
       // 2) Ambil data dashboard untuk patient tersebut
       const response = await axios.get(`${API_BASE}/api/dashboard/patient/${patientId}`);
@@ -92,6 +94,26 @@ export default function DashboardUtama() {
       setError(msg);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Handler untuk update informasi pasien
+  const handlePasienUpdate = (updatedData: DashboardData['informasiPasien']) => {
+    if (dashboardData) {
+      setDashboardData({
+        ...dashboardData,
+        informasiPasien: updatedData
+      });
+    }
+  };
+
+  // Handler untuk update informasi keluarga
+  const handleKeluargaUpdate = (updatedData: DashboardData['informasiKeluarga']) => {
+    if (dashboardData && updatedData) {
+      setDashboardData({
+        ...dashboardData,
+        informasiKeluarga: updatedData
+      });
     }
   };
 
@@ -149,8 +171,16 @@ export default function DashboardUtama() {
 
         {/* Panel Info - Sidebar kanan */}
         <div className="space-y-6">
-          <PanelInfoPasien informasiPasien={dashboardData.informasiPasien} />
-          <PanelInfoKeluarga informasiKeluarga={dashboardData.informasiKeluarga} />
+          <PanelInfoPasien 
+            informasiPasien={dashboardData.informasiPasien}
+            patientId={currentPatientId}
+            onUpdate={handlePasienUpdate}
+          />
+          <PanelInfoKeluarga 
+            informasiKeluarga={dashboardData.informasiKeluarga}
+            patientId={currentPatientId}
+            onUpdate={handleKeluargaUpdate}
+          />
         </div>
       </div>
 
