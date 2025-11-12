@@ -12,7 +12,7 @@ router.post('/saran-pola-makan', async (req, res) => {
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
-    return res.status(500).json({ error: 'Gemini API key not configured.' });
+    return res.status(500).json({ error: 'Kunci API Gemini tidak dikonfigurasi' });
   }
 
   try {
