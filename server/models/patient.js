@@ -8,11 +8,13 @@ const patientSchema = new Schema({
   },
   username: {
     type: String,
-    unique: true
+    unique: true,
+    sparse: true // Allows null values to be unique
   },
   email: {
     type: String,
-    unique: true
+    unique: true,
+    sparse: true
   },
   phone: {
     type: String
@@ -41,12 +43,16 @@ const patientSchema = new Schema({
   ai_health_summary: {
     type: String
   },
-  caregiver: {
+  // Relasi ke caregiver (user)
+  caregiver_id: {
     type: Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'User',
+    required: true
   },
-  deviceId: {
-    type: String
+  // Relasi ke device
+  device_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'Device'
   }
 }, {
   timestamps: true

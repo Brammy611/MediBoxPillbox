@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
+import TambahObatModal from './TambahObatModal';
 
 interface Medicine {
+  id?: string;
+  _id?: string;
   noSekat: number;
   namaObat: string;
   aturanMinum: string;
@@ -10,13 +13,23 @@ interface Medicine {
 
 interface MedicineSetupTabProps {
   medicines: Medicine[];
+  patientId?: string | null;
+  onRefresh?: () => void;
 }
 
-const MedicineSetupTab: React.FC<MedicineSetupTabProps> = ({ medicines }) => {
+const MedicineSetupTab: React.FC<MedicineSetupTabProps> = ({ medicines, patientId, onRefresh }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const handleTambahObat = () => {
-    // TODO: Implementasi logic untuk menambah obat (bisa modal atau navigasi ke form)
-    console.log("Tombol Tambah Obat diklik!");
-    alert("Fitur tambah obat akan segera hadir!");
+    setIsModalOpen(true);
+  };
+
+  const handleObatAdded = () => {
+    setIsModalOpen(false);
+    // Refresh data from parent
+    if (onRefresh) {
+      onRefresh();
+    }
   };
 
   return (
@@ -42,25 +55,28 @@ const MedicineSetupTab: React.FC<MedicineSetupTabProps> = ({ medicines }) => {
           </thead>
           <tbody className="divide-y divide-black/5">
             {medicines && medicines.length > 0 ? (
-              medicines.map((obat) => (
-                <tr 
-                  key={obat.noSekat} 
-                  className="hover:bg-brand-50/30 transition-colors"
-                >
-                  <td className="px-6 py-4 text-sm text-black/70">
-                    {obat.noSekat}
-                  </td>
-                  <td className="px-6 py-4 text-sm font-medium text-ink">
-                    {obat.namaObat}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-black/70">
-                    {obat.aturanMinum}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-black/70">
-                    {obat.deskripsi}
-                  </td>
-                </tr>
-              ))
+              medicines.map((obat) => {
+                const medicineId = obat.id || obat._id;
+                return (
+                  <tr 
+                    key={medicineId || obat.noSekat} 
+                    className="hover:bg-brand-50/30 transition-colors"
+                  >
+                    <td className="px-6 py-4 text-sm text-black/70">
+                      {obat.noSekat}
+                    </td>
+                    <td className="px-6 py-4 text-sm font-medium text-ink">
+                      {obat.namaObat}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-black/70">
+                      {obat.aturanMinum}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-black/70">
+                      {obat.deskripsi}
+                    </td>
+                  </tr>
+                );
+              })
             ) : (
               <tr>
                 <td 
@@ -88,6 +104,15 @@ const MedicineSetupTab: React.FC<MedicineSetupTabProps> = ({ medicines }) => {
           <span>Tambah Informasi Obat</span>
         </button>
       </div>
+
+      {/* Modal Tambah Obat */}
+      {isModalOpen && (
+        <TambahObatModal 
+          onClose={() => setIsModalOpen(false)}
+          onObatAdded={handleObatAdded}
+          patientId={patientId}
+        />
+      )}
     </div>
   );
 };

@@ -74,6 +74,19 @@ const logSchema = new Schema({
   },
   notes: {
     type: String
+  },
+  aksi: {
+    type: String
+  },
+  waktu_konsumsi_seharusnya: {
+    type: Date
+  },
+  timestamp_konsumsi_aktual: {
+    type: Date
+  },
+  isRead: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: { createdAt: true, updatedAt: false }

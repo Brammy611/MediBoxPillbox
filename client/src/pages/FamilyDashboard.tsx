@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 import LoginPrompt from '../components/family/LoginPrompt';
 import PanelStatistikFamily from '../components/family/PanelStatistikFamily';
 import NavigasiTab from '../components/family/NavigasiTab';
@@ -9,15 +10,6 @@ import SaranPolaMakanTab from '../components/family/SaranPolaMakanTab';
 import CekGejalaMandiriTab from '../components/family/CekGejalaMandiriTab';
 import NotifikasiTab from '../components/family/NotifikasiTab';
 import PlaceholderTab from '../components/family/PlaceholderTab';
-
-interface AuthState {
-  isLoggedIn: boolean;
-  user?: {
-    role: string;
-    patientId: string;
-    email: string;
-  };
-}
 
 interface DashboardData {
   stats: {
@@ -87,56 +79,29 @@ interface DashboardData {
 }
 
 const FamilyDashboard: React.FC = () => {
-  // State untuk autentikasi (SIMULASI - ganti dengan real auth nanti)
-  const [auth, setAuth] = useState<AuthState>({
-    isLoggedIn: true,
-    user: {
-      role: 'family',
-      patientId: '', // akan diisi setelah fetch pasien
-      email: 'FamilyAkun@gmail.com'
-    }
-  });
-  const [patients, setPatients] = useState<Array<{ _id: string; name?: string; username?: string }>>([]);
-
-  // State untuk tab aktif (Default: Notifikasi sesuai requirement)
-  const [activeTab, setActiveTab] = useState<string>('Notifikasi');
+  const { user, initialLoading } = useAuth();
+  
+  // State untuk tab aktif (Default: Family Profile)
+  const [activeTab, setActiveTab] = useState<string>('Family Profile');
 
   // State untuk data dashboard
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch data dari API jika sudah login
-  // Ambil daftar pasien lalu set patientId pertama kalau belum ada
+  // Fetch data dashboard ketika user dan patient_id sudah tersedia
   useEffect(() => {
-    const fetchPatients = async () => {
-      try {
-        const resp = await axios.get('http://localhost:5000/api/dashboard/patients');
-        if (resp.data?.success && Array.isArray(resp.data.patients)) {
-          setPatients(resp.data.patients);
-          if (!auth.user?.patientId && resp.data.patients.length > 0) {
-            const firstId = resp.data.patients[0]._id;
-            setAuth(prev => ({
-              ...prev,
-              user: { ...prev.user!, patientId: firstId }
-            }));
-          }
-        }
-      } catch (e) {
-        console.error('Gagal mengambil daftar pasien:', e);
-      }
-    };
-    if (auth.isLoggedIn && auth.user?.role === 'family') {
-      fetchPatients();
+    // Tunggu initialLoading selesai dulu
+    if (initialLoading) {
+      return;
     }
-  }, [auth.isLoggedIn, auth.user?.role]);
 
-  // Fetch data dashboard ketika patientId sudah tersedia
-  useEffect(() => {
-    if (auth.isLoggedIn && auth.user?.role === 'family' && auth.user.patientId) {
-      fetchDashboardData(auth.user.patientId);
+    if (user?.patient_id) {
+      fetchDashboardData(user.patient_id._id || user.patient_id);
+    } else {
+      setIsLoading(false);
     }
-  }, [auth.user?.patientId, auth.isLoggedIn, auth.user?.role]);
+  }, [user, initialLoading]);
 
   const fetchDashboardData = async (pid: string) => {
     try {
@@ -162,13 +127,6 @@ const FamilyDashboard: React.FC = () => {
   const handleMasuk = () => {
     // TODO: Implementasi logic login
     console.log('Navigasi ke halaman login');
-    // Simulasi login berhasil
-    // Simulasi login sukses tanpa patientId (akan di fetch otomatis)
-    setAuth(prev => ({
-      ...prev,
-      isLoggedIn: true,
-      user: { ...prev.user!, patientId: '' }
-    }));
   };
 
   const handleDaftar = () => {
@@ -176,8 +134,20 @@ const FamilyDashboard: React.FC = () => {
     console.log('Navigasi ke halaman registrasi');
   };
 
+  // Show loading during initial auth check
+  if (initialLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-brand-500 mx-auto mb-4"></div>
+          <p className="text-lg text-black/60">Memuat...</p>
+        </div>
+      </div>
+    );
+  }
+
   // KONDISI 1: Belum Login
-  if (!auth.isLoggedIn) {
+  if (!user) {
     return (
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="mb-8">
@@ -189,7 +159,7 @@ const FamilyDashboard: React.FC = () => {
   }
 
   // KONDISI 2: Sudah Login tapi Role bukan Family
-  if (auth.user?.role !== 'family') {
+  if (user.role !== 'family' && user.role !== 'caregiver') {
     return (
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="mb-8">
@@ -200,7 +170,7 @@ const FamilyDashboard: React.FC = () => {
             Anda tidak memiliki akses ke halaman ini
           </p>
           <p className="text-red-600 text-sm mt-2">
-            Halaman ini hanya untuk pengguna dengan role 'family'
+            Halaman ini hanya untuk pengguna dengan role 'family' atau 'caregiver'
           </p>
         </div>
       </div>
@@ -219,23 +189,30 @@ const FamilyDashboard: React.FC = () => {
     );
   }
 
-  // Jika belum ada patientId setelah fetch
-  if (auth.isLoggedIn && auth.user?.role === 'family' && !auth.user.patientId && patients.length === 0) {
+  // Jika belum setup pasien
+  if (!user.patient_id) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-lg text-black/60">Tidak ada pasien terdaftar untuk akun ini.</p>
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-semibold text-ink">Family Dashboard</h1>
+        </div>
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+          <p className="text-yellow-800 font-semibold mb-2">
+            Data Pasien Belum Dilengkapi
+          </p>
+          <p className="text-yellow-700 text-sm">
+            Silakan lengkapi data pasien terlebih dahulu untuk mengakses Family Dashboard.
+          </p>
+          <button
+            onClick={() => window.location.href = '/setup-pasien'}
+            className="mt-4 px-6 py-2 bg-brand-500 text-white rounded-md hover:bg-brand-600"
+          >
+            Setup Pasien
+          </button>
+        </div>
       </div>
     );
   }
-
-  // Selector pasien sederhana (opsional)
-  const handleSelectPatient = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newId = e.target.value;
-    setAuth(prev => ({
-      ...prev,
-      user: { ...prev.user!, patientId: newId }
-    }));
-  };
 
   // Error State
   if (error) {
@@ -245,7 +222,10 @@ const FamilyDashboard: React.FC = () => {
           <h3 className="text-red-800 font-semibold mb-2">Terjadi Kesalahan</h3>
           <p className="text-red-600">{error}</p>
           <button
-            onClick={() => auth.user?.patientId && fetchDashboardData(auth.user.patientId)}
+            onClick={() => {
+              const patientId = user.patient_id?._id || user.patient_id;
+              if (patientId) fetchDashboardData(patientId);
+            }}
             className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
           >
             Coba Lagi
@@ -264,6 +244,8 @@ const FamilyDashboard: React.FC = () => {
     );
   }
 
+  const patientId = user.patient_id?._id || user.patient_id;
+
   // KONDISI 3: Sudah Login sebagai Family - Tampilkan Dashboard Lengkap
   return (
     <div className="max-w-7xl mx-auto px-6 py-8">
@@ -273,21 +255,6 @@ const FamilyDashboard: React.FC = () => {
         <p className="text-sm text-black/60 mt-2">
           Selamat datang, {dashboardData.profiles.caregiverProfile.nama}
         </p>
-        {patients.length > 0 && (
-          <div className="mt-4 flex items-center gap-2">
-            <label htmlFor="patientSelect" className="text-sm text-black/60">Pasien:</label>
-            <select
-              id="patientSelect"
-              value={auth.user!.patientId}
-              onChange={handleSelectPatient}
-              className="border rounded px-2 py-1 text-sm"
-            >
-              {patients.map(p => (
-                <option key={p._id} value={p._id}>{p.name || p.username || p._id}</option>
-              ))}
-            </select>
-          </div>
-        )}
       </div>
 
       {/* Banner Info (Jika belum lengkap profile) - Opsional */}
@@ -317,12 +284,16 @@ const FamilyDashboard: React.FC = () => {
         {activeTab === 'Family Profile' && (
           <FamilyProfileTab 
             profiles={dashboardData.profiles}
-            patientId={auth.user.patientId}
+            patientId={patientId}
           />
         )}
         
         {activeTab === 'Medicine Setup' && (
-          <MedicineSetupTab medicines={dashboardData.informasiObat} />
+          <MedicineSetupTab 
+            medicines={dashboardData.informasiObat}
+            patientId={patientId}
+            onRefresh={() => patientId && fetchDashboardData(patientId)}
+          />
         )}
         
         {activeTab === 'Saran Pola Makan' && (
@@ -337,12 +308,12 @@ const FamilyDashboard: React.FC = () => {
           <CekGejalaMandiriTab 
             initData={dashboardData.cekGejala}
             profiles={dashboardData.profiles}
-            patientId={auth.user.patientId}
+            patientId={patientId}
           />
         )}
         
         {activeTab === 'Notifikasi' && (
-          <NotifikasiTab notifications={dashboardData.notifikasi} />
+          <NotifikasiTab />
         )}
       </div>
 

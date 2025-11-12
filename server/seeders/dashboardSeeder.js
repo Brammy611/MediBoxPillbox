@@ -39,7 +39,7 @@ const seedDashboardData = async () => {
     // 2. Buat Patient (Lansia)
     const patient = await Patient.create({
       name: 'Supono',
-      age: 70,
+      birthDate: new Date('1955-03-15'), // Tanggal lahir: 15 Maret 1955 (umur ~70 tahun)
       gender: 'Laki-laki',
       address: 'Jln. Bougenville No. 5A, Semarang',
       medicalHistory: {
