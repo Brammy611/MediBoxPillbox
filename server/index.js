@@ -51,3 +51,6 @@ app.get('/api/health/db', (_req, res) => {
     },
   });
 });
+
+// Export untuk Vercel
+module.exports = app;
