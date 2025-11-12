@@ -65,7 +65,7 @@ const dummyData: SaranPolaMakanData = {
 // === Komponen Utama ===
 const SaranPolaMakanTab: React.FC<SaranPolaMakanTabProps> = ({
   penyakit = "Asam Lambung",
-  daftarObat = ["Omeprazole, Magnesium hidroksida"]
+  daftarObat = ["Omeprazole", "Magnesium hidroksida"]
 }) => {
   const [aiData, setAiData] = useState<SaranPolaMakanData | null>(null);
   const [loading, setLoading] = useState(false);
