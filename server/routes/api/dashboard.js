@@ -38,6 +38,14 @@ router.get('/patient/:patientId', async (req, res) => {
       const caregiverId = patient.caregiver || patient.caregiver_id;
       caregiver = await User.findById(caregiverId);
     }
+    
+    // Jika tidak ada caregiver dari field di atas, cari user yang linked_patients-nya berisi patient ini
+    if (!caregiver) {
+      caregiver = await User.findOne({ 
+        role: 'caregiver', 
+        linked_patients: patient._id 
+      });
+    }
 
     // Ambil medicines (gunakan field patient atau patient_id yang tersimpan)
     const medicines = await Medicine.find({
@@ -143,9 +151,9 @@ router.get('/patient/:patientId', async (req, res) => {
         riwayatPenyakit: Array.isArray(patient.medicalHistory?.conditions) ? patient.medicalHistory.conditions.join(', ') : Array.isArray(patient.medical_history) ? patient.medical_history.join(', ') : '-'
       },
       informasiKeluarga: caregiver ? {
-        nama: caregiver.name,
-        email: caregiver.email,
-        hubunganDenganLansia: 'Keluarga',
+        nama: caregiver.name || '-',
+        email: caregiver.email || '-',
+        hubunganDenganLansia: caregiver.relationship || 'Keluarga',
         alamat: caregiver.address || '-',
         noHp: caregiver.phone || '-',
         jenisKelamin: caregiver.gender || '-'
@@ -181,6 +189,142 @@ router.get('/patient/:patientId', async (req, res) => {
   } catch (error) {
     console.error('Error fetching dashboard data:', error);
     res.status(500).json({ success: false, message: 'Gagal mengambil data dashboard', error: error.message });
+  }
+});
+
+// PUT /api/dashboard/patient/:patientId/info
+// Update informasi pasien atau keluarga
+router.put('/patient/:patientId/info', async (req, res) => {
+  try {
+    const { patientId } = req.params;
+    const { infoType, infoData } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(patientId)) {
+      return res.status(400).json({ success: false, message: 'Format patientId tidak valid' });
+    }
+
+    // Update Informasi Pasien/Lansia
+    if (infoType === 'pasien') {
+      const update = {};
+      if (infoData.nama) update.name = infoData.nama;
+      if (infoData.tanggalLahir) update.birthDate = new Date(infoData.tanggalLahir);
+      if (infoData.jenisKelamin) update.gender = infoData.jenisKelamin;
+      if (infoData.alamatLansia) update.address = infoData.alamatLansia;
+      
+      // Alergi & Penyakit dipisah dengan koma
+      if (infoData.riwayatAlergi) {
+        update['medicalHistory.allergies'] = infoData.riwayatAlergi
+          .split(',')
+          .map(s => s.trim())
+          .filter(Boolean);
+      }
+      if (infoData.riwayatPenyakit) {
+        update['medicalHistory.conditions'] = infoData.riwayatPenyakit
+          .split(',')
+          .map(s => s.trim())
+          .filter(Boolean);
+      }
+
+      const updatedPatient = await Patient.findByIdAndUpdate(
+        patientId,
+        update,
+        { new: true }
+      ).lean();
+
+      if (!updatedPatient) {
+        return res.status(404).json({ success: false, message: 'Pasien tidak ditemukan' });
+      }
+
+      return res.json({
+        success: true,
+        message: 'Informasi pasien berhasil diperbarui',
+        data: {
+          nama: updatedPatient.name || updatedPatient.username || 'Unknown',
+          tanggalLahir: updatedPatient.birthDate ? updatedPatient.birthDate.toISOString().split('T')[0] : '',
+          jenisKelamin: updatedPatient.gender || '-',
+          alamatLansia: updatedPatient.address || '-',
+          riwayatAlergi: Array.isArray(updatedPatient.medicalHistory?.allergies) 
+            ? updatedPatient.medicalHistory.allergies.join(', ') 
+            : '-',
+          riwayatPenyakit: Array.isArray(updatedPatient.medicalHistory?.conditions) 
+            ? updatedPatient.medicalHistory.conditions.join(', ') 
+            : '-'
+        }
+      });
+    }
+
+    // Update Informasi Keluarga/Caregiver
+    if (infoType === 'keluarga') {
+      // Temukan caregiver terkait dengan pasien
+      const patient = await Patient.findById(patientId).lean();
+      if (!patient) {
+        return res.status(404).json({ success: false, message: 'Pasien tidak ditemukan' });
+      }
+
+      let caregiverId = null;
+      if (patient.caregiver) {
+        caregiverId = patient.caregiver;
+      } else if (patient.caregiver_id && mongoose.Types.ObjectId.isValid(patient.caregiver_id)) {
+        caregiverId = patient.caregiver_id;
+      } else {
+        const caregiver = await User.findOne({ 
+          role: 'caregiver', 
+          linked_patients: patient._id 
+        }).lean();
+        caregiverId = caregiver?._id;
+      }
+
+      if (!caregiverId) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Caregiver tidak ditemukan untuk pasien ini' 
+        });
+      }
+
+      // Update data caregiver
+      const caregiverUpdate = {};
+      if (infoData.nama) caregiverUpdate.name = infoData.nama;
+      if (infoData.noHp) caregiverUpdate.phone = infoData.noHp;
+      if (infoData.jenisKelamin) caregiverUpdate.gender = infoData.jenisKelamin;
+      if (infoData.alamat) caregiverUpdate.address = infoData.alamat;
+      if (infoData.hubunganDenganLansia) caregiverUpdate.relationship = infoData.hubunganDenganLansia;
+      // Email tidak diupdate karena digunakan untuk login
+
+      const updatedCaregiver = await User.findByIdAndUpdate(
+        caregiverId,
+        caregiverUpdate,
+        { new: true }
+      ).lean();
+
+      if (!updatedCaregiver) {
+        return res.status(404).json({ success: false, message: 'Caregiver tidak ditemukan' });
+      }
+
+      return res.json({
+        success: true,
+        message: 'Informasi keluarga berhasil diperbarui',
+        data: {
+          nama: updatedCaregiver.name || '-',
+          email: updatedCaregiver.email || '-',
+          hubunganDenganLansia: updatedCaregiver.relationship || 'Keluarga',
+          alamat: updatedCaregiver.address || '-',
+          noHp: updatedCaregiver.phone || '-',
+          jenisKelamin: updatedCaregiver.gender || '-'
+        }
+      });
+    }
+
+    return res.status(400).json({ 
+      success: false, 
+      message: 'infoType tidak valid. Gunakan "pasien" atau "keluarga"' 
+    });
+  } catch (error) {
+    console.error('Error updating info:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Gagal mengupdate informasi',
+      error: error.message
+    });
   }
 });
 
