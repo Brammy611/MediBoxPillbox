@@ -81,8 +81,8 @@ interface DashboardData {
 const FamilyDashboard: React.FC = () => {
   const { user, initialLoading } = useAuth();
   
-  // State untuk tab aktif (Default: Notifikasi sesuai requirement)
-  const [activeTab, setActiveTab] = useState<string>('Notifikasi');
+  // State untuk tab aktif (Default: Family Profile)
+  const [activeTab, setActiveTab] = useState<string>('Family Profile');
 
   // State untuk data dashboard
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
