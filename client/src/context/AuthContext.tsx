@@ -7,14 +7,16 @@ interface User {
   email: string;
   phone: string;
   role: string;
-  linked_patients: any[];
+  patient_id: any | null;
+  has_setup_patient: boolean;
+  requiresPatientSetup?: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, phone: string, serialNumber: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
+  register: (name: string, email: string, phone: string, serialNumber: string, password: string) => Promise<{ serialNumber: string } | undefined>;
   logout: () => void;
   loading: boolean;
   initialLoading: boolean;
@@ -80,7 +82,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setToken(token);
         setUser(user);
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        return user; // Return user data
       }
+      throw new Error('Login gagal');
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Login gagal');
     } finally {
@@ -106,11 +110,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (response.data.success) {
-        const { token, user } = response.data;
+        const { token, user, serialNumber: returnedSerialNumber } = response.data;
         localStorage.setItem('token', token);
         setToken(token);
         setUser(user);
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        
+        // Return serialNumber for patient setup page
+        return { serialNumber: returnedSerialNumber };
       }
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Registrasi gagal');

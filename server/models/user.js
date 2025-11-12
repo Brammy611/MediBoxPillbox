@@ -5,28 +5,31 @@ const userSchema = new Schema({
   name: {
     type: String,
     required: true
-  }, // [cite: 48]
+  },
   email: {
     type: String,
     required: true,
     unique: true
-  }, // [cite: 49]
+  },
   phone: {
-    type: String
-  }, // [cite: 50]
+    type: String,
+    required: true
+  },
   password: {
     type: String,
     required: true
-  }, // [cite: 51]
+  },
   role: {
     type: String,
-    enum: ['caregiver', 'patient', 'pharmacist'], // Sesuaikan dengan kebutuhan
+    enum: ['caregiver', 'patient', 'pharmacist'],
     default: 'caregiver'
-  }, // [cite: 52]
-  linked_patients: [{
+  },
+  // Satu user hanya terhubung ke satu pasien
+  patient_id: {
     type: Schema.Types.ObjectId,
-    ref: 'Patient'
-  }], // [cite: 53]
+    ref: 'Patient',
+    default: null
+  },
   // Field tambahan untuk Caregiver Profile
   gender: {
     type: String,
@@ -37,9 +40,14 @@ const userSchema = new Schema({
   },
   relationship: {
     type: String // Hubungan dengan pasien (Anak, Cucu, Keponakan, dll)
+  },
+  // Status apakah sudah setup pasien
+  has_setup_patient: {
+    type: Boolean,
+    default: false
   }
 }, {
-  timestamps: true // Otomatis menambahkan createdAt dan updatedAt [cite: 54]
+  timestamps: true
 });
 
 module.exports = mongoose.model('User', userSchema);

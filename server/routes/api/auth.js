@@ -18,4 +18,9 @@ router.post('/login', authController.login);
 // @access  Private
 router.get('/me', auth, authController.getCurrentUser);
 
+// @route   POST /api/auth/setup-patient
+// @desc    Setup data pasien setelah registrasi
+// @access  Private
+router.post('/setup-patient', auth, authController.setupPatient);
+
 module.exports = router;

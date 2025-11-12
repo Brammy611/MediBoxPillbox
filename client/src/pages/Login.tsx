@@ -28,8 +28,14 @@ export default function Login() {
     setLoading(true);
 
     try {
-      await login(formData.email, formData.password);
-      navigate('/dashboard-utama');
+      const loggedInUser = await login(formData.email, formData.password);
+      
+      // Check directly from returned user data
+      if (loggedInUser.requiresPatientSetup || !loggedInUser.has_setup_patient) {
+        navigate('/setup-pasien');
+      } else {
+        navigate('/dashboard-utama');
+      }
     } catch (err: any) {
       setError(err.message || 'Login gagal');
     } finally {

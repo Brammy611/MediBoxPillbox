@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 import TambahObatModal from '../components/pharmacy/TambahObatModal';
 
 interface HistoryObat {
@@ -26,14 +27,13 @@ interface PharmacyData {
 }
 
 const PharmacyDashboard: React.FC = () => {
+  const { user, initialLoading } = useAuth();
   const [data, setData] = useState<PharmacyData>({
     historyObat: [],
     currentObat: []
   });
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [patientId, setPatientId] = useState<string | null>(null);
-  const [patients, setPatients] = useState<any[]>([]);
   const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
   // Mock data
@@ -68,19 +68,20 @@ const PharmacyDashboard: React.FC = () => {
   };
 
   // Fetch data from API berdasarkan patient_id
-  const fetchData = async (selectedPatientId?: string) => {
+  const fetchData = async () => {
     setIsLoading(true);
     try {
-      const targetPatientId = selectedPatientId || patientId;
+      const patientId = user?.patient_id?._id || user?.patient_id;
       
-      if (!targetPatientId) {
-        console.log('No patient ID available yet');
+      if (!patientId) {
+        console.log('No patient ID available');
+        setData({ historyObat: [], currentObat: [] });
         setIsLoading(false);
         return;
       }
 
       // Ambil data medicines dari API berdasarkan patient_id
-      const response = await axios.get(`${API_BASE}/api/medicines/patient/${targetPatientId}`);
+      const response = await axios.get(`${API_BASE}/api/medicines/patient/${patientId}`);
       
       if (response.data.success && response.data.medicines) {
         const medicines = response.data.medicines;
@@ -136,48 +137,32 @@ const PharmacyDashboard: React.FC = () => {
     }
   };
 
-  // Load patients on mount
+  // Load data when user is available
   useEffect(() => {
-    const loadPatients = async () => {
-      try {
-        const response = await axios.get(`${API_BASE}/api/dashboard/patients`);
-        if (response.data?.success && response.data.patients.length > 0) {
-          setPatients(response.data.patients);
-          const firstPatientId = response.data.patients[0]._id;
-          setPatientId(firstPatientId);
-          // Fetch data untuk patient pertama
-          fetchData(firstPatientId);
-        } else {
-          console.log('No patients found');
-          setIsLoading(false);
-        }
-      } catch (error) {
-        console.error('Error loading patients:', error);
-        setIsLoading(false);
-      }
-    };
-    
-    loadPatients();
-  }, []);
+    // Tunggu initialLoading selesai dulu
+    if (initialLoading) {
+      return;
+    }
+
+    if (user?.patient_id) {
+      fetchData();
+    } else {
+      setIsLoading(false);
+    }
+  }, [user, initialLoading]);
 
   const handleTambahObat = () => {
+    const patientId = user?.patient_id?._id || user?.patient_id;
     console.log('Opening modal with patientId:', patientId);
     setIsModalOpen(true);
   };
 
   const handleObatAdded = () => {
+    const patientId = user?.patient_id?._id || user?.patient_id;
     console.log('Medicine added, refreshing data for patientId:', patientId);
     setIsModalOpen(false);
-    // Force refresh dengan patientId yang ada
-    if (patientId) {
-      fetchData(patientId);
-    }
-  };
-
-  const handlePatientChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newPatientId = e.target.value;
-    setPatientId(newPatientId);
-    fetchData(newPatientId);
+    // Force refresh
+    fetchData();
   };
 
   const handleDeleteObat = async (medicineId: string, namaObat: string) => {
@@ -193,9 +178,7 @@ const PharmacyDashboard: React.FC = () => {
       
       if (response.data.success) {
         // Refresh data setelah berhasil hapus
-        if (patientId) {
-          fetchData(patientId);
-        }
+        fetchData();
         alert(`Obat "${namaObat}" berhasil dihapus`);
       } else {
         alert('Gagal menghapus obat: ' + response.data.message);
@@ -205,6 +188,18 @@ const PharmacyDashboard: React.FC = () => {
       alert('Gagal menghapus obat: ' + (error.response?.data?.message || error.message));
     }
   };
+
+  // Show loading during initial auth check
+  if (initialLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-brand-500 mx-auto mb-4"></div>
+          <p className="text-lg text-black/60">Memuat...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -226,27 +221,6 @@ const PharmacyDashboard: React.FC = () => {
             <h1 className="text-3xl font-semibold text-ink">Pharmacy Dashboard</h1>
             <p className="text-sm text-black/60 mt-2">Kelola informasi obat pasien</p>
           </div>
-          
-          {/* Patient Selector */}
-          {patients.length > 1 && (
-            <div className="flex items-center gap-3">
-              <label htmlFor="patient-select" className="text-sm font-medium text-ink">
-                Pilih Pasien:
-              </label>
-              <select
-                id="patient-select"
-                value={patientId || ''}
-                onChange={handlePatientChange}
-                className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
-              >
-                {patients.map((patient) => (
-                  <option key={patient._id} value={patient._id}>
-                    {patient.name || patient.username || patient._id}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
         </div>
       </div>
 
@@ -390,7 +364,7 @@ const PharmacyDashboard: React.FC = () => {
         <TambahObatModal 
           onClose={() => setIsModalOpen(false)}
           onObatAdded={handleObatAdded}
-          patientId={patientId}
+          patientId={user?.patient_id?._id || user?.patient_id || null}
         />
       )}
     </div>

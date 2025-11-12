@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useAuth } from "../context/AuthContext";
 import PanelStatistik from "../components/dashboard/PanelStatistik";
 import PanelAktivitas from "../components/dashboard/PanelAktivitas";
 import PanelInfoPasien from "../components/dashboard/PanelInfoPasien";
@@ -58,30 +59,33 @@ interface DashboardData {
 }
 
 export default function DashboardUtama() {
+  const { user, initialLoading } = useAuth();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentPatientId, setCurrentPatientId] = useState<string>('');
   const API_BASE = (process.env.REACT_APP_API_URL || 'http://localhost:5000').replace(/\/$/, '');
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    // Tunggu initialLoading selesai dulu
+    if (initialLoading) {
+      return;
+    }
 
-  const fetchDashboardData = async () => {
+    if (user?.patient_id) {
+      const patientId = user.patient_id._id || user.patient_id;
+      fetchDashboardData(patientId);
+    } else {
+      setIsLoading(false);
+      setError('Data pasien belum dilengkapi. Silakan setup pasien terlebih dahulu.');
+    }
+  }, [user, initialLoading]);
+
+  const fetchDashboardData = async (patientId: string) => {
     try {
       setIsLoading(true);
-      // 1) Ambil daftar pasien terlebih dahulu agar dapat _id yang valid
-      const listRes = await axios.get(`${API_BASE}/api/dashboard/patients`);
-      if (!listRes.data?.success || !Array.isArray(listRes.data?.patients) || listRes.data.patients.length === 0) {
-        setError('Tidak ada pasien di database. Tambahkan pasien terlebih dahulu.');
-        return;
-      }
-
-      const patientId: string = listRes.data.patients[0]._id; // pilih yang pertama (bisa diganti sesuai UI)
-      setCurrentPatientId(patientId);
-
-      // 2) Ambil data dashboard untuk patient tersebut
+      setError(null);
+      
+      // Ambil data dashboard untuk patient tersebut
       const response = await axios.get(`${API_BASE}/api/dashboard/patient/${patientId}`);
       if (response.data.success) {
         setDashboardData(response.data.data);
@@ -117,6 +121,18 @@ export default function DashboardUtama() {
     }
   };
 
+  // Show loading during initial auth check
+  if (initialLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-brand-500 mx-auto mb-4"></div>
+          <p className="text-lg text-black/60">Memuat...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -135,7 +151,10 @@ export default function DashboardUtama() {
           <h3 className="text-red-800 font-semibold mb-2">Terjadi Kesalahan</h3>
           <p className="text-red-600">{error}</p>
           <button
-            onClick={fetchDashboardData}
+            onClick={() => {
+              const patientId = user?.patient_id?._id || user?.patient_id;
+              if (patientId) fetchDashboardData(patientId);
+            }}
             className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
           >
             Coba Lagi
@@ -152,6 +171,8 @@ export default function DashboardUtama() {
       </div>
     );
   }
+
+  const patientId = user?.patient_id?._id || user?.patient_id || '';
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8">
@@ -173,12 +194,12 @@ export default function DashboardUtama() {
         <div className="space-y-6">
           <PanelInfoPasien 
             informasiPasien={dashboardData.informasiPasien}
-            patientId={currentPatientId}
+            patientId={patientId}
             onUpdate={handlePasienUpdate}
           />
           <PanelInfoKeluarga 
             informasiKeluarga={dashboardData.informasiKeluarga}
-            patientId={currentPatientId}
+            patientId={patientId}
             onUpdate={handleKeluargaUpdate}
           />
         </div>

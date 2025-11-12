@@ -4,6 +4,7 @@ import Layout from "./layout/Layout";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import PatientSetup from "./pages/PatientSetup";
 import DashboardUtama from "./pages/DashboardUtama";
 import FamilyDashboard from "./pages/FamilyDashboard";
 import PharmacyDashboard from "./pages/PharmacyDashboard";
@@ -16,6 +17,16 @@ export default function App() {
         {/* Public Routes - Tanpa Layout */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        
+        {/* Semi-Protected Route - Perlu login tapi belum setup pasien */}
+        <Route 
+          path="/setup-pasien" 
+          element={
+            <ProtectedRoute>
+              <PatientSetup />
+            </ProtectedRoute>
+          } 
+        />
         
         {/* Public Routes - Dengan Layout */}
         <Route path="/" element={<Layout><Home /></Layout>} />

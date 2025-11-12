@@ -44,14 +44,18 @@ export default function Register() {
     setLoading(true);
 
     try {
-      await register(
+      const result = await register(
         formData.name,
         formData.email,
         formData.phone,
         formData.serialNumber,
         formData.password
       );
-      navigate('/dashboard-utama');
+      
+      // Redirect to patient setup with serialNumber
+      navigate('/setup-pasien', { 
+        state: { serialNumber: result?.serialNumber || formData.serialNumber } 
+      });
     } catch (err: any) {
       setError(err.message || 'Registrasi gagal');
     } finally {
