@@ -297,8 +297,12 @@ const FamilyDashboard: React.FC = () => {
         )}
         
         {activeTab === 'Saran Pola Makan' && (
-          <SaranPolaMakanTab data={dashboardData.saranPolaMakan} />
+          <SaranPolaMakanTab 
+            penyakit={dashboardData.profiles.lansiaProfile.riwayatPenyakit || "Hipertensi"} 
+            daftarObat={dashboardData.saranPolaMakan.daftarObatTerkait} 
+          />
         )}
+
         
         {activeTab === 'Cek Gejala Mandiri' && (
           <CekGejalaMandiriTab 
