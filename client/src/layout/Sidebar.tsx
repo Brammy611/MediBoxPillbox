@@ -6,23 +6,36 @@ import {
   Pill,
   Users
 } from "lucide-react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import logoMedibox from "../assets/logo-medibox.png";
 
 const primaryLinks = [
   { label: "Tentang MediBox", icon: Home, href: "/" },
-  { label: "Dashboard Utama", icon: LayoutDashboard, href: "/dashboard-utama" },
-  { label: "Family Dashboard", icon: Users, href: "/family" },
-  { label: "Pharmacy Dashboard", icon: Pill, href: "/pharmacy" }
+  { label: "Dashboard Utama", icon: LayoutDashboard, href: "/dashboard-utama", protected: true },
+  { label: "Family Dashboard", icon: Users, href: "/family", protected: true },
+  { label: "Pharmacy Dashboard", icon: Pill, href: "/pharmacy", protected: true }
 ];
 
 export default function Sidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout, loading } = useAuth();
   
   // Function to check if current path matches the link
   const isActive = (href: string) => {
     return location.pathname === href;
   };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
+  // Jangan tampilkan sidebar di halaman login/register
+  if (location.pathname === '/login' || location.pathname === '/register') {
+    return null;
+  }
 
   return (
     <div className="h-screen sticky top-0 flex flex-col bg-[#FFF8F0]">
@@ -49,6 +62,10 @@ export default function Sidebar() {
         <nav className="space-y-2">
           {primaryLinks.map((item) => {
             const active = isActive(item.href);
+            const isProtected = item.protected;
+            // Saat loading, tampilkan sebagai accessible untuk menghindari flicker
+            const canAccess = !isProtected || user || loading;
+            
             return (
               <a
                 key={item.label}
@@ -56,16 +73,24 @@ export default function Sidebar() {
                 className={`group flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                   active
                     ? "bg-brand-500 text-white shadow-md"
-                    : "text-black/70 hover:bg-white hover:shadow-sm"
+                    : canAccess 
+                      ? "text-black/70 hover:bg-white hover:shadow-sm"
+                      : "text-black/30 cursor-not-allowed"
                 }`}
+                onClick={(e) => {
+                  if (isProtected && !user && !loading) {
+                    e.preventDefault();
+                    navigate('/login');
+                  }
+                }}
               >
                 <item.icon 
                   className={`h-5 w-5 ${
-                    active ? "text-white" : "text-brand-600"
+                    active ? "text-white" : canAccess ? "text-brand-600" : "text-black/30"
                   }`}
                 />
                 <span className={`text-sm font-medium ${
-                  active ? "text-white" : "text-ink"
+                  active ? "text-white" : canAccess ? "text-ink" : "text-black/30"
                 }`}>
                   {item.label}
                 </span>
@@ -103,15 +128,17 @@ export default function Sidebar() {
       </div>
 
       {/* Logout Section - Sticky at bottom */}
-      <div className="p-5 border-t border-black/10 bg-white/50">
-        <a 
-          href="/logout" 
-          className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-        >
-          <LogOut className="h-5 w-5" />
-          <span>Logout</span>
-        </a>
-      </div>
+      {!loading && user && (
+        <div className="p-5 border-t border-black/10 bg-white/50">
+          <button 
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+          >
+            <LogOut className="h-5 w-5" />
+            <span>Logout</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
