@@ -161,7 +161,7 @@ const FamilyProfileTab: React.FC<FamilyProfileTabProps> = ({ profiles, patientId
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-ink mb-2">Usia (otomatis dari Tanggal Lahir):</label>
+              <label className="block text-sm font-medium text-ink mb-2">Usia:</label>
               <input
                 type="text"
                 value={lansiaData.age ?? ''}
