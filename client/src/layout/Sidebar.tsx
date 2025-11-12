@@ -13,7 +13,7 @@ const primaryLinks = [
   { label: "Tentang MediBox", icon: Home, href: "/" },
   { label: "Dashboard Utama", icon: LayoutDashboard, href: "/dashboard-utama" },
   { label: "Family Dashboard", icon: Users, href: "/family" },
-  { label: "Apoteker Dashboard", icon: Pill, href: "/apoteker" }
+  { label: "Pharmacy Dashboard", icon: Pill, href: "/pharmacy" }
 ];
 
 export default function Sidebar() {

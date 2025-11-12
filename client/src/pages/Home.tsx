@@ -58,13 +58,13 @@ export default function Home() {
 
           <StepCard
             index={3}
-            title="Bagi Apoteker Mitra"
+            title="Bagi Pharmacy Partner"
             subtitle="Kolaborasi monitoring obat harian"
           >
             <ul className="list-disc ms-5 space-y-2">
-              <li>Apoteker memindai QR code pada kotak lansia dan langsung terhubung ke MediBox.</li>
+              <li>Pharmacy memindai QR code pada kotak lansia dan langsung terhubung ke MediBox.</li>
               <li>Notifikasi refill, penjadwalan kunjungan, dan riwayat kepatuhan pasien.</li>
-              <li>Laporan ringkas berbasis data sebagai bahan komunikasi keluarga–apoteker.</li>
+              <li>Laporan ringkas berbasis data sebagai bahan komunikasi keluarga–pharmacy.</li>
             </ul>
           </StepCard>
         </div>

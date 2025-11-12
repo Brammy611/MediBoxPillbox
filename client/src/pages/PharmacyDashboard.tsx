@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
+import axios from 'axios';
+import TambahObatModal from '../components/pharmacy/TambahObatModal';
 
 interface HistoryObat {
   id: string;
@@ -18,20 +20,24 @@ interface CurrentObat {
   deskripsi: string;
 }
 
-interface ApotekerData {
+interface PharmacyData {
   historyObat: HistoryObat[];
   currentObat: CurrentObat[];
 }
 
-const ApotekerDashboard: React.FC = () => {
-  const [data, setData] = useState<ApotekerData>({
+const PharmacyDashboard: React.FC = () => {
+  const [data, setData] = useState<PharmacyData>({
     historyObat: [],
     currentObat: []
   });
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [patientId, setPatientId] = useState<string | null>(null);
+  const [patients, setPatients] = useState<any[]>([]);
+  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
   // Mock data
-  const mockData: ApotekerData = {
+  const mockData: PharmacyData = {
     historyObat: [
       {
         id: 'h1',
@@ -61,29 +67,112 @@ const ApotekerDashboard: React.FC = () => {
     ]
   };
 
-  // Simulate API call
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
+  // Fetch data from API berdasarkan patient_id
+  const fetchData = async (selectedPatientId?: string) => {
+    setIsLoading(true);
+    try {
+      const targetPatientId = selectedPatientId || patientId;
       
-      // Simulate API delay
-      setTimeout(() => {
-        // Dalam implementasi real, ganti dengan:
-        // const response = await axios.get(`/api/apoteker-dashboard/${patientId}`);
-        // setData(response.data);
-        
-        setData(mockData);
+      if (!targetPatientId) {
+        console.log('No patient ID available yet');
         setIsLoading(false);
-      }, 800);
-    };
+        return;
+      }
 
-    fetchData();
+      // Ambil data medicines dari API berdasarkan patient_id
+      const response = await axios.get(`${API_BASE}/api/medicines/patient/${targetPatientId}`);
+      
+      if (response.data.success && response.data.medicines) {
+        const medicines = response.data.medicines;
+        
+        // Pisahkan berdasarkan status
+        // History: Obat dengan status "Habis" atau stock <= 0
+        const history = medicines
+          .filter((med: any) => 
+            med.status === 'Habis' || 
+            (med.quantity_in_box !== undefined && med.quantity_in_box <= 0) ||
+            (med.stock !== undefined && med.stock <= 0)
+          )
+          .map((med: any) => ({
+            id: med._id,
+            noSekat: med.compartmentNumber || med.section_number || 0,
+            namaObat: med.name,
+            aturanMinum: med.schedule && med.schedule.length > 0 
+              ? `${med.schedule.length} kali sehari` 
+              : med.dosage || '-',
+            deskripsi: med.description || '-',
+            statusObat: 'Kosong'
+          }));
+        
+        // Current: Obat dengan status "Tersedia" atau "Hampir Habis"
+        const current = medicines
+          .filter((med: any) => 
+            med.status === 'Tersedia' || 
+            med.status === 'Hampir Habis' ||
+            ((med.quantity_in_box === undefined || med.quantity_in_box > 0) &&
+             (med.stock === undefined || med.stock > 0))
+          )
+          .map((med: any) => ({
+            id: med._id,
+            noSekat: med.compartmentNumber || med.section_number || 0,
+            namaObat: med.name,
+            aturanMinum: med.schedule && med.schedule.length > 0 
+              ? `${med.schedule.length} kali sehari` 
+              : med.dosage || '-',
+            deskripsi: med.description || '-'
+          }));
+        
+        setData({ historyObat: history, currentObat: current });
+      } else {
+        // Jika tidak ada data, set empty
+        setData({ historyObat: [], currentObat: [] });
+      }
+    } catch (error) {
+      console.error('Error fetching medicines data:', error);
+      // Jika error, fallback ke mock data
+      setData(mockData);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Load patients on mount
+  useEffect(() => {
+    const loadPatients = async () => {
+      try {
+        const response = await axios.get(`${API_BASE}/api/dashboard/patients`);
+        if (response.data?.success && response.data.patients.length > 0) {
+          setPatients(response.data.patients);
+          const firstPatientId = response.data.patients[0]._id;
+          setPatientId(firstPatientId);
+          // Fetch data untuk patient pertama
+          fetchData(firstPatientId);
+        } else {
+          console.log('No patients found');
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('Error loading patients:', error);
+        setIsLoading(false);
+      }
+    };
+    
+    loadPatients();
   }, []);
 
   const handleTambahObat = () => {
-    // TODO: Implementasi logic untuk menambah obat baru
-    console.log('Tambah Informasi Obat clicked');
-    // Bisa membuka modal atau navigate ke form
+    setIsModalOpen(true);
+  };
+
+  const handleObatAdded = () => {
+    setIsModalOpen(false);
+    fetchData(patientId || undefined); // Refresh data setelah obat baru ditambahkan
+  };
+
+  const handlePatientChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newPatientId = e.target.value;
+    setPatientId(newPatientId);
+    fetchData(newPatientId);
   };
 
   if (isLoading) {
@@ -101,8 +190,33 @@ const ApotekerDashboard: React.FC = () => {
     <div className="max-w-7xl mx-auto px-6 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-semibold text-ink">Apoteker Dashboard</h1>
-        <p className="text-sm text-black/60 mt-2">Kelola informasi obat pasien</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-semibold text-ink">Pharmacy Dashboard</h1>
+            <p className="text-sm text-black/60 mt-2">Kelola informasi obat pasien</p>
+          </div>
+          
+          {/* Patient Selector */}
+          {patients.length > 1 && (
+            <div className="flex items-center gap-3">
+              <label htmlFor="patient-select" className="text-sm font-medium text-ink">
+                Pilih Pasien:
+              </label>
+              <select
+                id="patient-select"
+                value={patientId || ''}
+                onChange={handlePatientChange}
+                className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+              >
+                {patients.map((patient) => (
+                  <option key={patient._id} value={patient._id}>
+                    {patient.name || patient.username || patient._id}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Bagian 1: History Informasi Obat */}
@@ -227,8 +341,17 @@ const ApotekerDashboard: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Modal Tambah Obat */}
+      {isModalOpen && (
+        <TambahObatModal 
+          onClose={() => setIsModalOpen(false)}
+          onObatAdded={handleObatAdded}
+          patientId={patientId}
+        />
+      )}
     </div>
   );
 };
 
-export default ApotekerDashboard;
+export default PharmacyDashboard;
