@@ -5,6 +5,7 @@ const Patient = require('../../models/patient');
 const User = require('../../models/user');
 const Medicine = require('../../models/medicine');
 const Log = require('../../models/log');
+const Kepatuhan = require('../../models/kepatuhan');
 
 // Helper: list some patients for selection
 router.get('/patients', async (_req, res) => {
@@ -213,6 +214,25 @@ router.get('/patient/:patientId', async (req, res) => {
       };
     });
 
+    // ============================================
+    // 🔹 KEPATUHAN: Ambil entry terbaru dari Collection Kepatuhan
+    // ============================================
+    const latestKepatuhan = await Kepatuhan.findOne({
+      patient_id: patient._id
+    })
+    .sort({ created_at: -1 })
+    .lean();
+
+    let statusKepatuhan = 'Tidak Diketahui';
+    let statusColor = '#9CA3AF'; // Gray untuk tidak diketahui
+    let statusDetail = 'Belum ada data kepatuhan';
+
+    if (latestKepatuhan) {
+      statusKepatuhan = latestKepatuhan.kepatuhan; // 'Patuh' atau 'Tidak Patuh'
+      statusColor = latestKepatuhan.kepatuhan === 'Patuh' ? '#10B981' : '#EF4444';
+      statusDetail = `Status terakhir: ${latestKepatuhan.kepatuhan} (${new Date(latestKepatuhan.created_at).toLocaleString('id-ID')})`;
+    }
+
     // Informasi obat (fallback jika schedule/fields lain tidak ada)
     const informasiObat = medicines.map(m => {
       const qty = typeof m.quantity_in_box === 'number' ? m.quantity_in_box : (typeof m.stock === 'number' ? m.stock : undefined);
@@ -254,10 +274,10 @@ router.get('/patient/:patientId', async (req, res) => {
         analisisWaktuKritis,
         keterangan: '*Data diambil dari MongoDB',
         statusKepatuhan: {
-          status: complianceRate >= 80 ? 'Patuh' : complianceRate >= 60 ? 'Cukup Patuh' : 'Tidak Patuh',
-          kategori: complianceRate >= 80 ? 'Baik' : complianceRate >= 60 ? 'Perlu Perhatian' : 'Peringatan',
-          persentase: complianceRate,
-          detail: `${totalSuccess} dari ${totalAttempts} dosis diminum (7 hari terakhir)`
+          status: statusKepatuhan,
+          color: statusColor,
+          persentase: null,
+          detail: statusDetail
         },
         peringatanStok: informasiObat.some(i => i.statusObat === 'Hampir Habis' || i.statusObat === 'Habis') 
           ? 'Stok obat hampir habis' 

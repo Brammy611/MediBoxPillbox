@@ -17,7 +17,7 @@ interface DashboardData {
     analisisWaktuKritis: Array<{ waktu: string; persen: number; label: string; jumlah?: number }>;
     statusKepatuhan: {
       status: string;
-      kategori: string;
+      color: string;
       persentase?: number;
       detail?: string;
     };

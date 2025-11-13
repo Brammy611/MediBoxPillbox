@@ -30,8 +30,8 @@ interface DashboardData {
     keterangan: string;
     statusKepatuhan: {
       status: string;
-      kategori: string;
-      persentase?: number;
+      color: string;
+      persentase?: number | null;
       detail?: string;
     };
     peringatanStok: string;

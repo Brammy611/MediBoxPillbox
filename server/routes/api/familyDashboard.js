@@ -179,47 +179,20 @@ router.get('/:patientId', async (req, res) => {
     console.log('📊 [FamilyDashboard] totalBucket:', totalBucket);
 
     // ============================================
-    // 🔹 KEPATUHAN: Gunakan data dari Collection Kepatuhan (Qualcomm AI)
+    // 🔹 KEPATUHAN: Ambil entry terbaru dari Collection Kepatuhan
     // ============================================
-    const kepatuhanData = await Kepatuhan.find({
-      patient_id: patient._id,
-      created_at: { $gte: sevenDaysAgo }
-    }).lean();
+    const latestKepatuhan = await Kepatuhan.findOne({
+      patient_id: patient._id
+    })
+    .sort({ created_at: -1 })
+    .lean();
 
-    let statusKepatuhan = 'Patuh';
-    let kategoriKepatuhan = 'Baik';
-    let persentaseKepatuhan = 100;
+    let statusKepatuhan = 'Tidak Diketahui';
+    let statusColor = '#9CA3AF'; // Gray untuk tidak diketahui
 
-    if (kepatuhanData.length > 0) {
-      // Hitung dari data Qualcomm AI
-      const totalKepatuhan = kepatuhanData.length;
-      const jumlahPatuh = kepatuhanData.filter(k => k.kepatuhan === 'Patuh').length;
-      persentaseKepatuhan = persen(jumlahPatuh, totalKepatuhan);
-
-      if (persentaseKepatuhan < 50) {
-        statusKepatuhan = 'Tidak Patuh';
-        kategoriKepatuhan = 'Perlu Perhatian';
-      } else if (persentaseKepatuhan < 80) {
-        statusKepatuhan = 'Cukup Patuh';
-        kategoriKepatuhan = 'Sedang';
-      } else {
-        statusKepatuhan = 'Patuh';
-        kategoriKepatuhan = 'Baik';
-      }
-    } else {
-      // Fallback ke metode lama jika belum ada data kepatuhan
-      const totalRencana = medicines.reduce((acc, m) => acc + (m.schedule ? m.schedule.length * 7 : 0), 0);
-      const totalTakenAll = logs.filter(l => l.action === 'taken').length;
-      const adherenceRatio = totalRencana ? totalTakenAll / totalRencana : 1;
-      persentaseKepatuhan = Math.round(adherenceRatio * 100);
-      
-      if (adherenceRatio < 0.5) {
-        statusKepatuhan = 'Tidak Patuh';
-        kategoriKepatuhan = 'Perlu Perhatian';
-      } else if (adherenceRatio < 0.8) {
-        statusKepatuhan = 'Cukup Patuh';
-        kategoriKepatuhan = 'Sedang';
-      }
+    if (latestKepatuhan) {
+      statusKepatuhan = latestKepatuhan.kepatuhan; // 'Patuh' atau 'Tidak Patuh'
+      statusColor = latestKepatuhan.kepatuhan === 'Patuh' ? '#10B981' : '#EF4444';
     }
 
     // Peringatan stok kalau ada obat quantity_in_box <= 5
@@ -299,9 +272,11 @@ router.get('/:patientId', async (req, res) => {
         analisisWaktuKritis,
         statusKepatuhan: {
           status: statusKepatuhan,
-          kategori: kategoriKepatuhan,
-          persentase: persentaseKepatuhan,
-          detail: `${kepatuhanData.filter(k => k.kepatuhan === 'Patuh').length} dari ${kepatuhanData.length} dosis patuh (7 hari terakhir)`
+          color: statusColor,
+          persentase: null,
+          detail: latestKepatuhan 
+            ? `Status terakhir: ${latestKepatuhan.kepatuhan} (${new Date(latestKepatuhan.created_at).toLocaleString('id-ID')})`
+            : 'Belum ada data kepatuhan'
         },
         keterangan: '*Waktu lansia sering telat minum',
         peringatanStok,

@@ -6,7 +6,7 @@ interface StatsData {
   analisisWaktuKritis: Array<{ waktu: string; persen: number; label: string; jumlah?: number }>;
   statusKepatuhan: {
     status: string;
-    kategori: string;
+    color: string;
     persentase?: number;
     detail?: string;
   };
@@ -100,30 +100,39 @@ const PanelStatistikFamily: React.FC<PanelStatistikFamilyProps> = ({ stats }) =>
     return null;
   };
 
-  // Tentukan warna status kepatuhan
-  const getStatusColor = (kategori: string) => {
-    switch (kategori?.toLowerCase()) {
-      case 'baik':
-        return { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-800', badge: 'bg-green-100 text-green-700' };
-      case 'perlu perhatian':
-      case 'sedang':
-        return { bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-800', badge: 'bg-yellow-100 text-yellow-700' };
-      case 'peringatan':
-        return { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-800', badge: 'bg-red-100 text-red-700' };
-      default:
-        return { bg: 'bg-gray-50', border: 'border-gray-200', text: 'text-gray-800', badge: 'bg-gray-100 text-gray-700' };
+  // Tentukan warna berdasarkan status (dari backend)
+  const getStatusColor = (status: string, hexColor: string) => {
+    // hexColor dari backend: #10B981 (green/Patuh) atau #EF4444 (red/Tidak Patuh)
+    const isPatuh = status === 'Patuh';
+    
+    if (isPatuh) {
+      return { 
+        bg: 'bg-green-50', 
+        border: 'border-green-200', 
+        text: 'text-green-800', 
+        badge: 'bg-green-100 text-green-700',
+        hex: hexColor 
+      };
+    } else {
+      return { 
+        bg: 'bg-red-50', 
+        border: 'border-red-200', 
+        text: 'text-red-800', 
+        badge: 'bg-red-100 text-red-700',
+        hex: hexColor 
+      };
     }
   };
 
   // Safeguard untuk statusKepatuhan
   const kepatuhanInfo = stats.statusKepatuhan || {
     status: 'Tidak Diketahui',
-    kategori: 'Baik',
+    color: '#9CA3AF',
     persentase: 0,
     detail: ''
   };
 
-  const statusColors = getStatusColor(kepatuhanInfo.kategori);
+  const statusColors = getStatusColor(kepatuhanInfo.status, kepatuhanInfo.color);
 
   return (
     <div className="bg-white rounded-xl shadow-soft p-4 sm:p-6 border border-black/5 mb-6">
@@ -277,16 +286,11 @@ const PanelStatistikFamily: React.FC<PanelStatistikFamilyProps> = ({ stats }) =>
             <p className={`text-2xl sm:text-3xl font-bold ${statusColors.text}`}>
               {kepatuhanInfo.status}
             </p>
-            {kepatuhanInfo.persentase !== undefined && (
+            {kepatuhanInfo.persentase !== undefined && kepatuhanInfo.persentase !== null && (
               <span className="text-lg sm:text-xl font-bold text-gray-600">
                 ({kepatuhanInfo.persentase}%)
               </span>
             )}
-          </div>
-          <div className="flex items-center gap-2">
-            <span className={`text-xs sm:text-sm px-3 py-1.5 ${statusColors.badge} rounded-full font-semibold`}>
-              {kepatuhanInfo.kategori}
-            </span>
           </div>
           {kepatuhanInfo.detail && (
             <p className="text-xs sm:text-sm text-gray-700 mt-3 leading-relaxed">

@@ -20,8 +20,8 @@ interface StatistikProps {
     keterangan: string;
     statusKepatuhan: {
       status: string;
-      kategori: string;
-      persentase?: number;
+      color: string;
+      persentase?: number | null;
       detail?: string;
     };
     peringatanStok: string;
@@ -74,21 +74,31 @@ export default function PanelStatistik({ statistik }: StatistikProps) {
     return null;
   };
 
-  // Tentukan warna status kepatuhan
-  const getStatusColor = (kategori: string) => {
-    switch (kategori.toLowerCase()) {
-      case 'baik':
-        return { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-800', badge: 'bg-green-100 text-green-700' };
-      case 'perlu perhatian':
-        return { bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-800', badge: 'bg-yellow-100 text-yellow-700' };
-      case 'peringatan':
-        return { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-800', badge: 'bg-red-100 text-red-700' };
-      default:
-        return { bg: 'bg-gray-50', border: 'border-gray-200', text: 'text-gray-800', badge: 'bg-gray-100 text-gray-700' };
+  // Tentukan warna berdasarkan status (dari backend)
+  const getStatusColor = (status: string, hexColor: string) => {
+    // hexColor dari backend: #10B981 (green/Patuh) atau #EF4444 (red/Tidak Patuh)
+    const isPatuh = status === 'Patuh';
+    
+    if (isPatuh) {
+      return { 
+        bg: 'bg-green-50', 
+        border: 'border-green-200', 
+        text: 'text-green-800', 
+        badge: 'bg-green-100 text-green-700',
+        hex: hexColor 
+      };
+    } else {
+      return { 
+        bg: 'bg-red-50', 
+        border: 'border-red-200', 
+        text: 'text-red-800', 
+        badge: 'bg-red-100 text-red-700',
+        hex: hexColor 
+      };
     }
   };
 
-  const statusColors = getStatusColor(statistik.statusKepatuhan.kategori);
+  const statusColors = getStatusColor(statistik.statusKepatuhan.status, statistik.statusKepatuhan.color);
 
   return (
     <div className="bg-white rounded-xl shadow-soft p-6 border border-black/5">
@@ -221,16 +231,11 @@ export default function PanelStatistik({ statistik }: StatistikProps) {
             <p className={`text-2xl font-bold ${statusColors.text}`}>
               {statistik.statusKepatuhan.status}
             </p>
-            {statistik.statusKepatuhan.persentase !== undefined && (
+            {statistik.statusKepatuhan.persentase !== undefined && statistik.statusKepatuhan.persentase !== null && (
               <span className="text-lg font-semibold text-gray-600">
                 ({statistik.statusKepatuhan.persentase}%)
               </span>
             )}
-          </div>
-          <div className="mt-2 flex items-center gap-2">
-            <span className={`text-xs px-2 py-1 ${statusColors.badge} rounded font-medium`}>
-              {statistik.statusKepatuhan.kategori}
-            </span>
           </div>
           {statistik.statusKepatuhan.detail && (
             <p className="text-xs text-gray-600 mt-2">
