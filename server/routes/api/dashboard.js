@@ -239,7 +239,8 @@ router.get('/patient/:patientId', async (req, res) => {
 
     const dashboardData = {
       informasiPasien: {
-        nama: patient.name || patient.username || 'Unknown',
+        // Display name now forced to use username primarily per request
+        nama: patient.name || 'Unknown',
         tanggalLahir: patient.birthDate ? patient.birthDate.toISOString().split('T')[0] : '',
         jenisKelamin: patient.gender || '-',
         alamatLansia: patient.address || '-',
@@ -312,7 +313,11 @@ router.put('/patient/:patientId/info', async (req, res) => {
     // Update Informasi Pasien/Lansia
     if (infoType === 'pasien') {
       const update = {};
-      if (infoData.nama) update.name = infoData.nama;
+      if (infoData.nama) {
+        // Update both name and username to keep display consistent
+        update.name = infoData.nama;
+        update.username = infoData.nama;
+      }
       if (infoData.tanggalLahir) update.birthDate = new Date(infoData.tanggalLahir);
       if (infoData.jenisKelamin) update.gender = infoData.jenisKelamin;
       if (infoData.alamatLansia) update.address = infoData.alamatLansia;
@@ -331,11 +336,23 @@ router.put('/patient/:patientId/info', async (req, res) => {
           .filter(Boolean);
       }
 
-      const updatedPatient = await Patient.findByIdAndUpdate(
-        patientId,
-        update,
-        { new: true }
-      ).lean();
+      let updatedPatient;
+      try {
+        updatedPatient = await Patient.findByIdAndUpdate(
+          patientId,
+          update,
+          { new: true, runValidators: true }
+        ).lean();
+      } catch (e) {
+        // Handle duplicate username error
+        if (e && e.code === 11000 && e.keyPattern && e.keyPattern.username) {
+          return res.status(409).json({
+            success: false,
+            message: 'Username sudah digunakan. Silakan pilih username lain.'
+          });
+        }
+        throw e;
+      }
 
       if (!updatedPatient) {
         return res.status(404).json({ success: false, message: 'Pasien tidak ditemukan' });
@@ -345,7 +362,8 @@ router.put('/patient/:patientId/info', async (req, res) => {
         success: true,
         message: 'Informasi pasien berhasil diperbarui',
         data: {
-          nama: updatedPatient.name || updatedPatient.username || 'Unknown',
+          // Consistent with GET: prioritize username for display
+          nama: updatedpatient.name || 'Unknown',
           tanggalLahir: updatedPatient.birthDate ? updatedPatient.birthDate.toISOString().split('T')[0] : '',
           jenisKelamin: updatedPatient.gender || '-',
           alamatLansia: updatedPatient.address || '-',

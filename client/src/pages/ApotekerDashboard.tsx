@@ -210,7 +210,7 @@ const PharmacyDashboard: React.FC = () => {
               >
                 {patients.map((patient) => (
                   <option key={patient._id} value={patient._id}>
-                    {patient.name || patient.username || patient._id}
+                    {patient.name || patient._id}
                   </option>
                 ))}
               </select>

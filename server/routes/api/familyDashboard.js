@@ -228,7 +228,7 @@ router.get('/:patientId', async (req, res) => {
 
     // Profiles mapping
     const lansiaProfile = {
-      nama: patient.name || patient.username || 'Tidak Diketahui',
+      nama: patient.name || 'Tidak Diketahui',
       tanggalLahir: patient.birthDate ? new Date(patient.birthDate).toISOString().split('T')[0] : '',
       jenisKelamin: patient.gender || 'Tidak Diketahui',
       alamat: patient.address || '-',
