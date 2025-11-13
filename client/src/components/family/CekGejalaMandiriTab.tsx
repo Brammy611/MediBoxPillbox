@@ -205,7 +205,6 @@ const CekGejalaMandiriTab: React.FC<Props> = ({ initData, profiles, patientId })
           </div>
           <div>
             <h3 className="font-semibold text-lg text-white">Asisten Kesehatan AI</h3>
-            <p className="text-xs" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>Powered by Gemini AI ✨</p>
           </div>
         </div>
       </div>
