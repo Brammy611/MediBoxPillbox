@@ -27,11 +27,17 @@ exports.askGemini = async (req, res) => {
 
     // Step 1: Inisialisasi Gemini AI dengan model
     console.log('🤖 Initializing Gemini AI...');
+    
+    // Validate API key
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY not configured in environment variables');
+    }
+    
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     
     // Gunakan model gemini-2.0-flash (fast and efficient)
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.0-flash",
+      model: process.env.GEMINI_MODEL || "gemini-2.0-flash",
       generationConfig: {
         temperature: 0.7,      // Kreativitas sedang
         topP: 0.9,
@@ -40,7 +46,7 @@ exports.askGemini = async (req, res) => {
       }
     });
 
-    console.log('✓ Gemini model initialized: gemini-2.0-flash');
+    console.log('✓ Gemini model initialized:', process.env.GEMINI_MODEL || 'gemini-2.0-flash');
 
     // Step 2: Ambil data pasien dari MongoDB
     console.log('📊 Fetching patient data from MongoDB...');
@@ -167,13 +173,51 @@ Jawab sekarang:`;
 
     console.log('📝 Prompt created, length:', prompt.length, 'characters');
 
-    // Step 6: Generate response dari Gemini AI
+    // Step 6: Generate response dari Gemini AI dengan retry logic
     console.log('🚀 Sending request to Gemini AI...');
     const startTime = Date.now();
     
-    const result = await model.generateContent(prompt);
-    const response = result.response;
-    const aiResponse = response.text();
+    let aiResponse = null;
+    let lastError = null;
+    const maxRetries = 3;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`   Attempt ${attempt}/${maxRetries}...`);
+        
+        const result = await model.generateContent(prompt);
+        const response = result.response;
+        aiResponse = response.text();
+        
+        // Success - break retry loop
+        console.log(`✅ Success on attempt ${attempt}`);
+        break;
+        
+      } catch (retryError) {
+        lastError = retryError;
+        console.error(`❌ Attempt ${attempt} failed:`, retryError.message);
+        
+        // Check if it's a network error that's worth retrying
+        const isNetworkError = retryError.message?.includes('fetch failed') ||
+                              retryError.message?.includes('ECONNREFUSED') ||
+                              retryError.message?.includes('ETIMEDOUT') ||
+                              retryError.message?.includes('network');
+        
+        if (!isNetworkError || attempt === maxRetries) {
+          // Not a network error, or final attempt - throw immediately
+          throw retryError;
+        }
+        
+        // Wait before retry (exponential backoff: 1s, 2s, 4s)
+        const waitTime = Math.pow(2, attempt - 1) * 1000;
+        console.log(`   Waiting ${waitTime}ms before retry...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+      }
+    }
+    
+    if (!aiResponse) {
+      throw lastError || new Error('Failed to get AI response after retries');
+    }
     
     const duration = Date.now() - startTime;
     console.log(`✅ AI response received in ${duration}ms`);
@@ -203,7 +247,7 @@ Jawab sekarang:`;
     // Handle berbagai tipe error
     let errorMessage = 'Maaf, AI sedang mengalami masalah teknis. Silakan coba lagi dalam beberapa saat.';
     
-    if (error.message?.includes('API_KEY') || error.message?.includes('API key')) {
+    if (error.message?.includes('API_KEY') || error.message?.includes('API key') || error.message?.includes('not configured')) {
       console.error('❌ API Key error');
       errorMessage = 'Maaf, konfigurasi AI bermasalah. Silakan hubungi administrator.';
     } else if (error.message?.includes('quota') || error.message?.includes('limit')) {
@@ -212,9 +256,17 @@ Jawab sekarang:`;
     } else if (error.message?.includes('timeout')) {
       console.error('❌ Request timeout');
       errorMessage = 'Maaf, permintaan ke AI timeout. Silakan coba dengan pertanyaan yang lebih singkat.';
-    } else if (error.message?.includes('network') || error.message?.includes('ECONNREFUSED')) {
-      console.error('❌ Network error');
-      errorMessage = 'Maaf, terjadi masalah koneksi ke layanan AI. Periksa koneksi internet Anda.';
+    } else if (error.message?.includes('fetch failed') || error.message?.includes('network') || error.message?.includes('ECONNREFUSED') || error.message?.includes('ETIMEDOUT')) {
+      console.error('❌ Network/Connection error');
+      errorMessage = 'Maaf, tidak dapat terhubung ke layanan AI. Kemungkinan penyebab:\n\n' +
+                    '1. ❌ Koneksi internet bermasalah\n' +
+                    '2. 🔒 Firewall/VPN memblokir akses ke Google API\n' +
+                    '3. 🌐 DNS tidak dapat resolve generativelanguage.googleapis.com\n\n' +
+                    '💡 Solusi cepat:\n' +
+                    '- Periksa koneksi internet Anda\n' +
+                    '- Coba matikan VPN sementara\n' +
+                    '- Hubungi administrator jaringan\n\n' +
+                    'Jika situasi mendesak, segera hubungi dokter.';
     }
 
     console.error('Sending error response\n');
