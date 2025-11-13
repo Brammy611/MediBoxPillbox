@@ -289,7 +289,11 @@ router.get('/:patientId', async (req, res) => {
     const totalToday = logsToday.length;
     const persentaseToday = persen(diminum, totalToday);
 
-    const responseData = {
+  // Tentukan label gender untuk quick replies (Kakek/Nenek), default netral 'Lansia'
+  const isFemale = (patient.gender || '').toLowerCase() === 'perempuan';
+  const genderLabel = isFemale ? 'Nenek' : 'Kakek';
+
+  const responseData = {
       stats: {
         waktuPengambilanObat,
         analisisWaktuKritis,
@@ -318,9 +322,9 @@ router.get('/:patientId', async (req, res) => {
       cekGejala: {
         initialMessage: `Halo, ${caregiverProfile.nama || 'Caregiver'}! Saya AI Asisten MediBox. Apakah ada keluhan yang ${lansiaProfile.nama || 'lansia'} rasakan hari ini?`,
         quickReplies: [
-          'Kakek mual dan tidak nafsu makan',
-          'Kakek terlihat pusing',
-          'Kakek mengeluh nyeri dada'
+          `${genderLabel} mual dan tidak nafsu makan`,
+          `${genderLabel} terlihat pusing`,
+          `${genderLabel} mengeluh nyeri dada`
         ]
       },
       // Data notifikasi
