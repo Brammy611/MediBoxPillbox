@@ -29,7 +29,7 @@ export default function PanelAktivitas({ aktivitas }: AktivitasProps) {
           <thead>
             <tr className="border-b border-black/10">
               <th className="text-left py-2 px-3 font-medium">Waktu</th>
-              <th className="text-left py-2 px-3 font-medium">Nama Obat</th>
+              <th className="text-left py-2 px-3 font-medium">Jumlah Obat</th>
               <th className="text-left py-2 px-3 font-medium">Status</th>
               <th className="text-left py-2 px-3 font-medium">Deskripsi</th>
             </tr>

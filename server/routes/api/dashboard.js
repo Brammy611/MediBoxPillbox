@@ -179,22 +179,16 @@ router.get('/patient/:patientId', async (req, res) => {
                     log.compliance_status === 'late' || 
                     log.aksi === 'Terima');
       
-      // Tentukan nama obat dari populate atau dari medicine_id array
-      let namaObat = 'Obat';
-      if (log.medicine && log.medicine.name) {
-        namaObat = log.medicine.name;
+      // Jumlah obat dari servo_active atau medicine_id
+      let jumlahObat = 1;
+      if (Array.isArray(log.servo_active) && log.servo_active.length > 0) {
+        jumlahObat = log.servo_active.length;
       } else if (Array.isArray(log.medicine_id) && log.medicine_id.length > 0) {
-        const names = log.medicine_id
-          .map(id => medicineMap[id?.toString()]?.name)
-          .filter(Boolean);
-        if (names.length > 0) namaObat = names.join(', ');
+        jumlahObat = log.medicine_id.length;
       }
       
-      // Jumlah obat dari servo_active
-      const jumlahObat = Array.isArray(log.servo_active) ? log.servo_active.length : 1;
-      if (jumlahObat > 1) {
-        namaObat = `${jumlahObat} obat`;
-      }
+      // Format tampilan jumlah obat - selalu tampilkan dengan angka
+      const namaObat = `${jumlahObat} obat`;
       
       // Deskripsi lebih detail
       let deskripsi = log.notes || '';
